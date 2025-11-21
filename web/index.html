@@ -1,102 +1,135 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard Restaurant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - Bootstrap</title>
     <link rel="stylesheet" href="style.css">
 
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
 
     <!-- NAVBAR -->
-    <div class="navbar">
-        <h1>Dashboard Restaurant</h1>
-        <div class="profile">
-            <span>Admin</span>
-            <img src="/img/Nasfi Mohamed Shamseddine.jpg" alt="profil">
+    <nav class="navbar navbar-dark bg-dark px-3">
+        <a class="navbar-brand" href="#">Tableau de Bord</a>
+        <form class="d-flex">
+            <input class="form-control me-2" type="search" placeholder="Recherche">
+            <button class="btn btn-outline-light" type="submit">OK</button>
+        </form>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+
+            <!-- SIDEBAR -->
+            <nav class="col-md-2 sidebar d-flex flex-column pt-4">
+                <a href="#">Dashboard</a>
+                <a href="#">Gestion des utilisateurs</a>
+                <a href="#">Paramètres</a>
+                <a href="#">Logs système</a>
+                <a href="#">Statistiques</a>
+                <a href="#">Déconnexion</a>
+            </nav>
+
+            <!-- MAIN CONTENT -->
+            <main class="col-md-10 content-area">
+
+                <h3 class="mb-4">Vue générale</h3>
+
+                <!-- STAT CARDS -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card shadow stat-card p-3">
+                            <h5>Utilisateurs actifs</h5>
+                            <h2>125</h2>
+                            <span class="text-success">+5 aujourd'hui</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card shadow stat-card p-3">
+                            <h5>Transactions</h5>
+                            <h2>3 240</h2>
+                            <span class="text-primary">+120 cette semaine</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card shadow stat-card p-3">
+                            <h5>Alertes</h5>
+                            <h2>8</h2>
+                            <span class="text-danger">2 critiques</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card shadow stat-card p-3">
+                            <h5>Serveur</h5>
+                            <h2>En ligne</h2>
+                            <span class="text-success">100% opérationnel</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DATA TABLE -->
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        Activités récentes
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Utilisateur</th>
+                                    <th>Action</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>21/11/2025</td>
+                                    <td>Admin</td>
+                                    <td>Connexion</td>
+                                    <td><span class="badge bg-success">Succès</span></td>
+                                </tr>
+                                <tr>
+                                    <td>21/11/2025</td>
+                                    <td>Jean</td>
+                                    <td>Modification paramètres</td>
+                                    <td><span class="badge bg-warning">Avertissement</span></td>
+                                </tr>
+                                <tr>
+                                    <td>20/11/2025</td>
+                                    <td>Sarah</td>
+                                    <td>Ajout utilisateur</td>
+                                    <td><span class="badge bg-success">OK</span></td>
+                                </tr>
+                                <tr>
+                                    <td>20/11/2025</td>
+                                    <td>Root</td>
+                                    <td>Suppression logs</td>
+                                    <td><span class="badge bg-danger">Critique</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="d-flex gap-3">
+                    <button class="btn btn-primary">Ajouter un utilisateur</button>
+                    <button class="btn btn-outline-secondary">Exporter les données</button>
+                    <button class="btn btn-danger">Redémarrer le système</button>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <button>Tableau de bord</button>
-        <button>Plats</button>
-        <button>Catégories</button>
-        <button>Commandes</button>
-        <button>Clients</button>
-        <button>Employés</button>
-        <button>Paramètres</button>
-    </div>
-
-    <!-- CONTENU -->
-    <div class="content">
-        <h2>Vue d’ensemble</h2>
-
-        <!-- CARTES STATISTIQUES -->
-        <div class="grid">
-            <div class="card">
-                <h3>Commandes Aujourd’hui</h3>
-                <p>57</p>
-            </div>
-
-            <div class="card">
-                <h3>Revenus (TND)</h3>
-                <p>842.700</p>
-            </div>
-
-            <div class="card">
-                <h3>Clients Actifs</h3>
-                <p>23</p>
-            </div>
-
-            <div class="card">
-                <h3>Plats vendus</h3>
-                <p>134</p>
-            </div>
-        </div>
-
-        <h2 style="margin-top:40px;">Commandes récentes</h2>
-
-        <!-- TABLEAU -->
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Client</th>
-                <th>Plat</th>
-                <th>Montant</th>
-                <th>Status</th>
-            </tr>
-
-            <tr>
-                <td>#1023</td>
-                <td>Ahmed</td>
-                <td>Pâtes carbonara</td>
-                <td>28 TND</td>
-                <td>Livrée</td>
-            </tr>
-
-            <tr>
-                <td>#1022</td>
-                <td>Maryem</td>
-                <td>Pizza 4 fromages</td>
-                <td>32 TND</td>
-                <td>En cours</td>
-            </tr>
-
-            <tr>
-                <td>#1021</td>
-                <td>Youssef</td>
-                <td>Couscous</td>
-                <td>22 TND</td>
-                <td>Préparation</td>
-            </tr>
-        </table>
-
-    </div>
-
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

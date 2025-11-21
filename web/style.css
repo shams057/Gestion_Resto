@@ -1,122 +1,23 @@
-body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: #f5f6fa;
-}
-
-/* NAVBAR */
-.navbar {
-    height: 60px;
-    background-color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 25px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 10;
-}
-
-.navbar h1 {
-    font-size: 20px;
-    margin: 0;
-    font-weight: 600;
-}
-
-.profile {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.profile img {
-    margin-right: 40px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-}
-
-/* SIDEBAR */
-.sidebar {
-    width: 220px;
-    height: 100vh;
-    background-color: #ffffff;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-    padding-top: 80px;
-    position: fixed;
-}
-
-.sidebar button {
-    width: 80%;
-    margin: 10px 10%;
-    padding: 12px;
-    background-color: #f0f2f5;
-    border: none;
-    font-size: 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.sidebar button:hover {
-    background-color: #dfe4ea;
-}
-
-/* CONTENU PRINCIPAL */
-.content {
-    margin-left: 240px;
-    padding: 100px 40px 40px 40px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-}
-
-.card {
-    background-color: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06);
-}
-
-.card h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.card p {
-    font-size: 28px;
-    margin-top: 8px;
-    font-weight: bold;
-}
-
-/* TABLEAU */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 25px;
-    background-color: white;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.07);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-th,
-td {
-    padding: 14px;
-    text-align: left;
-}
-
-th {
-    background-color: #f1f2f6;
-    font-weight: 600;
-}
-
-tr:nth-child(even) {
-    background-color: #fafafa;
-}
+        body {
+            background-color: #f5f6fa;
+        }
+        .sidebar {
+            background: #343a40;
+            min-height: 100vh;
+        }
+        .sidebar a {
+            color: #ddd;
+            padding: 12px;
+            display: block;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background: #495057;
+            color: white;
+        }
+        .content-area {
+            padding: 20px;
+        }
+        .stat-card {
+            border-radius: 12px;
+        }
