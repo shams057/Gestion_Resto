@@ -21,19 +21,10 @@
             <input id="search-input" type="text" placeholder="Search food...">
             <select id="category-filter">
                 <option value="all">All Categories</option>
-                <option value="fruits">Fruits</option>
-                <option value="vegetables">Vegetables</option>
-                <option value="meat">Meat</option>
-                <option value="snacks">Snacks</option>
-                <option value="drinks">Drinks</option>
             </select>
 
             <h4>Allergies:</h4>
-            <div>
-                <input type="checkbox" class="allergy-checkbox" value="gluten-free" id="gluten"><label for="gluten">Gluten Free</label><br>
-                <input type="checkbox" class="allergy-checkbox" value="lactose-free" id="lactose"><label for="lactose">Lactose Free</label><br>
-                <input type="checkbox" class="allergy-checkbox" value="nut-free" id="nuts"><label for="nuts">Nut Free</label>
-            </div>
+            <div id="allergy-filters"></div>
         </aside>
 
         <!-- PRODUCTS GRID -->
@@ -48,6 +39,6 @@
         <button id="buy-btn">Buy Now</button>
     </div>
 
-    <script src="script.js"></script>
+    <script src="buypage.js"></script>
 </body>
 </html>

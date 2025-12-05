@@ -173,3 +173,11 @@ body {
 #buy-btn:hover {
     background:#c0392b;
 }
+.tag {
+  background: #ffdfdf;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-right: 5px;
+  display: inline-block;
+}
