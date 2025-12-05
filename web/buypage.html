@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Shop</title>
+    <link rel="stylesheet" href="styleBP.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">FoodMarket</div>
+        <button id="cart-btn">Cart (<span id="cart-count">0</span>)</button>
+    </nav>
+
+    <div class="container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <h3>Filters</h3>
+            <input id="search-input" type="text" placeholder="Search food...">
+            <select id="category-filter">
+                <option value="all">All Categories</option>
+                <option value="fruits">Fruits</option>
+                <option value="vegetables">Vegetables</option>
+                <option value="meat">Meat</option>
+                <option value="snacks">Snacks</option>
+                <option value="drinks">Drinks</option>
+            </select>
+
+            <h4>Allergies:</h4>
+            <div>
+                <input type="checkbox" class="allergy-checkbox" value="gluten-free" id="gluten"><label for="gluten">Gluten Free</label><br>
+                <input type="checkbox" class="allergy-checkbox" value="lactose-free" id="lactose"><label for="lactose">Lactose Free</label><br>
+                <input type="checkbox" class="allergy-checkbox" value="nut-free" id="nuts"><label for="nuts">Nut Free</label>
+            </div>
+        </aside>
+
+        <!-- PRODUCTS GRID -->
+        <main id="products" class="products"></main>
+    </div>
+
+    <!-- CART CARD -->
+    <div id="cart-card" class="cart-card">
+        <h3>Shopping Cart</h3>
+        <ul id="cart-items"></ul>
+        <p>Total: <strong id="cart-total">0.00 TND</strong></p>
+        <button id="buy-btn">Buy Now</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
