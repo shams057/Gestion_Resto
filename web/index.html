@@ -14,7 +14,7 @@
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-dark bg-dark px-3">
-        <a class="navbar-brand" href="#">Tableau de Bord</a>
+        <a class="navbar-brand fw-bold" href="#">Tableau de Bord</a>
         <form class="d-flex">
             <input class="form-control me-2" type="search" placeholder="Recherche">
             <button class="btn btn-outline-light" type="submit">OK</button>
@@ -37,44 +37,44 @@
             <!-- MAIN CONTENT -->
             <main class="col-md-10 content-area">
 
-                <h3 class="mb-4">Vue générale</h3>
+                <h3 class="mb-4 fw-bold">Vue générale</h3>
 
                 <!-- STAT CARDS -->
                 <div class="row mb-4">
                     <div class="col-md-3">
-                        <div class="card shadow stat-card p-3">
-                            <h5>Utilisateurs actifs</h5>
-                            <h2>125</h2>
-                            <span class="text-success">+5 aujourd'hui</span>
+                        <div class="card shadow stat-card p-3 text-center">
+                            <h6 class="text-muted">Utilisateurs actifs</h6>
+                            <h2 class="fw-bold">125</h2>
+                            <span class="text-success small">+5 aujourd'hui</span>
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="card shadow stat-card p-3">
-                            <h5>Transactions</h5>
-                            <h2>3 240</h2>
-                            <span class="text-primary">+120 cette semaine</span>
+                        <div class="card shadow stat-card p-3 text-center">
+                            <h6 class="text-muted">Transactions</h6>
+                            <h2 class="fw-bold">3 240</h2>
+                            <span class="text-primary small">+120 cette semaine</span>
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="card shadow stat-card p-3">
-                            <h5>Alertes</h5>
-                            <h2>8</h2>
-                            <span class="text-danger">2 critiques</span>
+                        <div class="card shadow stat-card p-3 text-center">
+                            <h6 class="text-muted">Alertes</h6>
+                            <h2 class="fw-bold">8</h2>
+                            <span class="text-danger small">2 critiques</span>
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="card shadow stat-card p-3">
-                            <h5>Serveur</h5>
-                            <h2>En ligne</h2>
-                            <span class="text-success">100% opérationnel</span>
+                        <div class="card shadow stat-card p-3 text-center">
+                            <h6 class="text-muted">Serveur</h6>
+                            <h2 class="fw-bold text-success">En ligne</h2>
+                            <span class="small">100% opérationnel</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- DATA TABLE -->
+                <!-- SYSTEM LOG TABLE -->
                 <div class="card shadow mb-4">
                     <div class="card-header bg-primary text-white">
                         Activités récentes
@@ -119,17 +119,117 @@
                     </div>
                 </div>
 
+
+                <!-- PRODUCT ORDERS TABLE -->
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        Commandes récentes
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Produit</th>
+                                    <th>Prix</th>
+                                    <th>Serveur</th>
+                                    <th>Détails</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>22/11/2025</td>
+                                    <td>Karim</td>
+                                    <td>Pizza Margherita</td>
+                                    <td>18 TND</td>
+                                    <td>Amine</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailsModal"
+                                            onclick="loadDetails('Pizza Margherita', 'Tomate, Mozzarella, Basilic', '18 TND', 'Amine')">
+                                            Voir
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>22/11/2025</td>
+                                    <td>Yasmine</td>
+                                    <td>Cheesecake</td>
+                                    <td>12 TND</td>
+                                    <td>Sarra</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailsModal"
+                                            onclick="loadDetails('Cheesecake', 'Sans gluten, fruits rouges', '12 TND', 'Sarra')">
+                                            Voir
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>21/11/2025</td>
+                                    <td>Ali</td>
+                                    <td>Café Espresso</td>
+                                    <td>4 TND</td>
+                                    <td>Oussama</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailsModal"
+                                            onclick="loadDetails('Café Espresso', 'Double shot italien', '4 TND', 'Oussama')">
+                                            Voir
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
                 <!-- BUTTONS -->
                 <div class="d-flex gap-3">
                     <button class="btn btn-primary">Ajouter un utilisateur</button>
                     <button class="btn btn-outline-secondary">Exporter les données</button>
                     <button class="btn btn-danger">Redémarrer le système</button>
                 </div>
+
             </main>
         </div>
     </div>
 
+
+    <!-- MODAL -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="modalTitle" class="modal-title"></h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Ingrédients :</strong> <span id="modalIngredients"></span></p>
+                    <p><strong>Prix :</strong> <span id="modalPrice"></span></p>
+                    <p><strong>Servi par :</strong> <span id="modalWaiter"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function loadDetails(name, ingredients, price, waiter) {
+            document.getElementById("modalTitle").innerText = name;
+            document.getElementById("modalIngredients").innerText = ingredients;
+            document.getElementById("modalPrice").innerText = price;
+            document.getElementById("modalWaiter").innerText = waiter;
+        }
+    </script>
+
 </body>
 </html>
