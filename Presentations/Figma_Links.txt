@@ -1,2 +1,0 @@
-sequentiel : https://www.figma.com/board/J0kYvYDkb6DwQaKoMsZBdD/Sequence-Diagram---Restaurant-CRUD?node-id=0-1&p=f&t=GWYf76Tz6r4JGIMc-0
-usecase : https://www.figma.com/board/zepfuss7w5yuQAqqqQVRRY/Use-Case---Gestion-Restaurant-CRUD?node-id=0-1&p=f&t=4RP4FZJ0x6KOSjxw-0
