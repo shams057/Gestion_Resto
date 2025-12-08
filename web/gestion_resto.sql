@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 21, 2025 at 10:59 AM
+-- Generation Time: Dec 08, 2025 at 01:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -170,7 +170,8 @@ CREATE TABLE `plats` (
   `description` text DEFAULT NULL,
   `prix` decimal(10,2) NOT NULL DEFAULT 0.00,
   `id_categorie` int(10) UNSIGNED DEFAULT NULL,
-  `image_url` varchar(255) DEFAULT NULL,
+  `image_url` varchar(999) DEFAULT NULL,
+  `allergies` varchar(255) DEFAULT NULL,
   `disponible` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -180,11 +181,14 @@ CREATE TABLE `plats` (
 -- Dumping data for table `plats`
 --
 
-INSERT INTO `plats` (`id`, `nom`, `description`, `prix`, `id_categorie`, `image_url`, `disponible`, `created_at`, `updated_at`) VALUES
-(1, 'Salade César', 'Salade avec poulet, parmesan et croutons', 12.00, 1, NULL, 1, '2025-11-21 10:40:11', '2025-11-21 10:40:11'),
-(2, 'Pâtes carbonara', 'Pâtes à la crème et pancetta', 14.50, 2, NULL, 1, '2025-11-21 10:40:11', '2025-11-21 10:40:11'),
-(3, 'Couscous', 'Couscous traditionnel', 10.00, 2, NULL, 1, '2025-11-21 10:40:11', '2025-11-21 10:40:11'),
-(4, 'Tiramisu', 'Dessert italien à base de mascarpone', 6.50, 3, NULL, 1, '2025-11-21 10:40:11', '2025-11-21 10:40:11');
+INSERT INTO `plats` (`id`, `nom`, `description`, `prix`, `id_categorie`, `image_url`, `allergies`, `disponible`, `created_at`, `updated_at`) VALUES
+(1, 'Salade César', 'Salade avec poulet, parmesan et croutons', 12.00, 1, 'https://www.allrecipes.com/thmb/GKJL13Wb8TZ9hpJ9c70v0aNXsyQ=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/229063-Classic-Restaurant-Caesar-Salad-ddmfs-4x3-231-89bafa5e54dd4a8c933cf2a5f9f12a6f.jpg', 'gluten-free,lactose-free', 1, '2025-11-21 10:40:11', '2025-12-08 11:18:14'),
+(2, 'Pâtes carbonara', 'Pâtes à la crème et pancetta', 14.50, 2, 'https://upload.wikimedia.org/wikipedia/commons/3/33/Espaguetis_carbonara.jpg', 'nut-free', 1, '2025-11-21 10:40:11', '2025-12-08 11:22:42'),
+(3, 'Couscous', 'Couscous traditionnel', 10.00, 2, 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Moroccan_cuscus%2C_from_Casablanca%2C_September_2018.jpg/960px-Moroccan_cuscus%2C_from_Casablanca%2C_September_2018.jpg', 'gluten-free', 1, '2025-11-21 10:40:11', '2025-12-08 11:22:42'),
+(4, 'Tiramisu', 'Dessert italien à base de mascarpone', 6.50, 3, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Tiramisu_-_Raffaele_Diomede.jpg/1280px-Tiramisu_-_Raffaele_Diomede.jpg', 'gluten-free,lactose-free', 1, '2025-11-21 10:40:11', '2025-12-08 11:22:42'),
+(5, 'Loubya', 'Plat tunisien culte', 14.00, 2, 'https://images.squarespace-cdn.com/content/v1/580bb690d1758e509eb28292/1549000436086-84CVXCCRN1JXYJISO2VZ/RUUKmSUaRYODKWRl1nVSRA.jpg?format=1500w', 'gluten-free,lactose-free,nut-free', 1, '2025-11-21 10:40:11', '2025-12-08 11:22:42'),
+(6, 'Lasagne', 'Lasagne italienne, béchamel et viande hachée', 18.00, 2, 'https://imgs.search.brave.com/Ez-XtYlqQxPX_IP9XsSZ4tEtPjYiBTS0rj7sMTmIzqU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9p/dGFsaWFuLWxhc2Fn/bmUtc2VydmVkLXdp/dGgtcm9ja2V0LXNh/bGFkXzE0MTc5My0x/Nzg4LmpwZz9zZW10/PWFpc19oeWJyaWQm/dz03NDAmcT04MA', 'nut-free', 1, '2025-11-21 10:40:11', '2025-12-08 11:22:42'),
+(7, 'Glace', 'Glace sorbet naturel', 6.50, 3, 'https://imgs.search.brave.com/H-6d3WcvtSjN9-rJc-3zmFciwQZJc0V9ScTBHCms9fo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3RpL3Bob3Rv/cy1ncmF0dWl0ZS90/Mi81MjcxNjkxMS1h/c3NvcnRpbWVudC1k/ZS1jb2xvcmUtc29y/YmV0LWxhLWdsYWNl/LWNyZW1lLWJvdWxl/cy1kYW5zLWVuLWJv/aXMtYm91bGVzLWdy/YXR1aXQtcGhvdG8u/anBn', 'gluten-free,lactose-free,nut-free', 1, '2025-11-21 10:40:11', '2025-12-08 11:50:16');
 
 -- --------------------------------------------------------
 
@@ -409,7 +413,7 @@ ALTER TABLE `logs`
 -- AUTO_INCREMENT for table `plats`
 --
 ALTER TABLE `plats`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `reservations`
