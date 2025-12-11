@@ -14,7 +14,6 @@ const buyBtn = document.getElementById("buy-btn");
 
 // ===================== DISPLAY PRODUCTS =====================
 function displayProducts(items) {
-
     productsContainer.innerHTML = "";
 
     if (items.length === 0) {
@@ -30,22 +29,32 @@ function displayProducts(items) {
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-            <img src="${food.img}" alt="${food.name}">
+            <img src="${food.img}" alt="${food.name}" />
             <h3>${food.name}</h3>
             <p>${food.desc}</p>
             <div class="allergy-tags">${allergyTags}</div>
             <p><strong>${food.price.toFixed(2)} TND</strong></p>
             <button>Add to Cart</button>
         `;
+
         card.querySelector("button").addEventListener("click", () => addToCart(food));
+
         productsContainer.appendChild(card);
     });
 }
 
-
 // ===================== CART FUNCTIONS =====================
 function addToCart(food) {
-    cart.push(food);
+    const existing = cart.find(item => item.name === food.name);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({
+            name: food.name,
+            price: food.price,
+            quantity: 1
+        });
+    }
     updateCart();
     showCart();
 }
@@ -53,20 +62,25 @@ function addToCart(food) {
 function updateCart() {
     cartItemsContainer.innerHTML = "";
     let total = 0;
+    let itemsCount = 0;
+
     cart.forEach(item => {
+        const lineTotal = item.price * item.quantity;
         const li = document.createElement("li");
-        li.textContent = `${item.name} - ${item.price.toFixed(2)} TND`;
+        li.textContent = `${item.name} x${item.quantity} - ${lineTotal.toFixed(2)} TND`;
         cartItemsContainer.appendChild(li);
-        total += item.price;
+
+        total += lineTotal;
+        itemsCount += item.quantity;
     });
+
     cartTotalDisplay.textContent = total.toFixed(2) + " TND";
-    cartCountDisplay.textContent = cart.length;
+    cartCountDisplay.textContent = itemsCount;
 }
 
 function showCart() {
     cartCard.classList.add("visible");
 }
-
 
 // ===================== FILTERING =====================
 function filterProducts() {
@@ -80,7 +94,6 @@ function filterProducts() {
         const matchesText = food.name.toLowerCase().includes(text);
         const matchesCategory = category === "all" || food.category === category;
 
-        // Food must HAVE at least one of the selected allergens
         const matchesAllergy =
             selectedAllergies.length === 0 ||
             selectedAllergies.some(a => food.allergy.includes(a));
@@ -90,9 +103,9 @@ function filterProducts() {
 
     displayProducts(filtered);
 }
+
 // ===================== SETUP FILTERS =====================
 function setupFilters(data) {
-
     const categories = [...new Set(data.map(f => f.category))];
 
     // ---- Categories ----
@@ -116,19 +129,18 @@ function setupFilters(data) {
         allergyContainer.appendChild(div);
     });
 
-    document.querySelectorAll(".allergy-checkbox")
+    document
+        .querySelectorAll(".allergy-checkbox")
         .forEach(cb => cb.addEventListener("change", filterProducts));
 }
-
 
 // ===================== FETCH DATABASE DATA =====================
 fetch("api.php")
     .then(res => res.json())
     .then(data => {
-
         foods = data.map(f => ({
             name: f.nom,
-            desc: f.description,
+            desc: f.description || "",
             price: parseFloat(f.prix),
             category: f.category,
             img: f.image_url || "https://via.placeholder.com/300x200",
@@ -140,7 +152,6 @@ fetch("api.php")
     })
     .catch(err => console.error("Fetch Error:", err));
 
-
 // ===================== UI EVENTS =====================
 searchInput.addEventListener("input", filterProducts);
 categoryFilter.addEventListener("change", filterProducts);
@@ -149,9 +160,39 @@ cartBtn.addEventListener("click", () =>
     cartCard.classList.toggle("visible")
 );
 
-buyBtn.addEventListener("click", () => {
-    alert("Order Confirmed!");
-    cart = [];
-    updateCart();
-    cartCard.classList.remove("visible");
+buyBtn.addEventListener("click", async () => {
+    if (cart.length === 0) {
+        alert("Votre panier est vide.");
+        return;
+    }
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    try {
+        const res = await fetch("api.php?action=create_order", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                cart,
+                total
+            })
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !data || data.success === false) {
+            alert((data && data.error) || "Erreur lors de la création de la commande.");
+            return;
+        }
+
+        alert("Commande confirmée ! Référence: " + (data.reference || ""));
+        cart = [];
+        updateCart();
+        cartCard.classList.remove("visible");
+    } catch (e) {
+        console.error("Order error:", e);
+        alert("Erreur réseau lors de la commande.");
+    }
 });

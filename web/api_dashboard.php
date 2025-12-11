@@ -33,12 +33,12 @@ try {
 }
 
 try {
-    // Simple stats
-    $usersCount  = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-    $ordersCount = (int)$pdo->query("SELECT COUNT(*) FROM commandes")->fetchColumn();
-    $alertsCount = (int)$pdo->query("SELECT COUNT(*) FROM logs")->fetchColumn();
+    // Stats
+    $totalRevenue = (float)$pdo->query("SELECT COALESCE(SUM(total),0) FROM commandes")->fetchColumn();
+    $ordersCount  = (int)$pdo->query("SELECT COUNT(*) FROM commandes")->fetchColumn();
+    $alertsCount  = (int)$pdo->query("SELECT COUNT(*) FROM logs")->fetchColumn();
 
-    // Orders per day (last 7 days) using commandes table directly
+    // Orders per day (last 7 days)
     $ordersStmt = $pdo->query("
         SELECT DATE(date_commande) AS date,
                COUNT(*) AS nb_commandes,
@@ -50,7 +50,7 @@ try {
     ");
     $ordersPerDay = $ordersStmt->fetchAll();
 
-    // Popular dishes: top 5 plats by number of lignes
+    // Popular dishes
     $popularStmt = $pdo->query("
         SELECT p.id,
                p.nom,
@@ -63,7 +63,7 @@ try {
     ");
     $popular = $popularStmt->fetchAll();
 
-    // Recent orders: last 10 commandes with client and serveur names
+    // Recent orders
     $recentOrdersStmt = $pdo->query("
         SELECT co.id,
                co.date_commande,
@@ -113,9 +113,21 @@ try {
         $lc->execute(['cid' => $ro['id']]);
         $lines = $lc->fetchAll();
 
-        $items = [];
+        // Group by produit and sum quantities
+        $itemsGrouped = [];
         foreach ($lines as $ln) {
-            $items[] = ($ln['produit'] ?? 'Plat').' x'.$ln['quantite'];
+            $prod = $ln['produit'] ?? 'Plat';
+            $qty  = (int)$ln['quantite'];
+
+            if (!isset($itemsGrouped[$prod])) {
+                $itemsGrouped[$prod] = 0;
+            }
+            $itemsGrouped[$prod] += $qty;
+        }
+
+        $itemsFormatted = [];
+        foreach ($itemsGrouped as $prod => $qty) {
+            $itemsFormatted[] = $prod.' x'.$qty;
         }
 
         $recent[] = [
@@ -123,14 +135,14 @@ try {
             'date_commande' => $ro['date_commande'],
             'client_nom'    => $client,
             'serveur_nom'   => $waiter,
-            'items'         => $items,
+            'items'         => $itemsFormatted,
             'total'         => $ro['total'],
         ];
     }
 
     echo json_encode([
         'stats' => [
-            'users'         => $usersCount,
+            'total_revenue' => $totalRevenue,
             'orders'        => $ordersCount,
             'alerts'        => $alertsCount,
             'server_status' => 'En ligne',

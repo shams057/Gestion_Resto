@@ -39,35 +39,39 @@ if (!sessionStorage.getItem('auth') || sessionStorage.getItem('role') !== 'admin
             <main class="col-md-10 content-area p-4">
                 <h3 class="mb-4 fw-bold">Vue générale</h3>
 
-                <!-- Simple stats header (optional, static or later wired with JS) -->
+                <!-- STAT CARDS -->
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <div class="card shadow stat-card p-3 text-center">
-                            <h6 class="text-muted">Utilisateurs actifs</h6>
-                            <h2 id="stat-users" class="fw-bold">–</h2>
+                            <h6 class="text-muted">Revenu total</h6>
+                            <h2 id="stat-revenue" class="fw-bold">0 TND</h2>
+                            <span class="text-success small"></span>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card shadow stat-card p-3 text-center">
-                            <h6 class="text-muted">Commandes</h6>
-                            <h2 id="stat-orders" class="fw-bold">–</h2>
+                            <h6 class="text-muted">Transactions</h6>
+                            <h2 id="stat-orders" class="fw-bold">0</h2>
+                            <span class="text-primary small"></span>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card shadow stat-card p-3 text-center">
                             <h6 class="text-muted">Alertes</h6>
-                            <h2 id="stat-alerts" class="fw-bold">–</h2>
+                            <h2 id="stat-alerts" class="fw-bold">0</h2>
+                            <span class="text-danger small"></span>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card shadow stat-card p-3 text-center">
                             <h6 class="text-muted">Serveur</h6>
-                            <h2 id="stat-server" class="fw-bold text-success">–</h2>
+                            <h2 id="stat-server" class="fw-bold text-success">En ligne</h2>
+                            <span class="small">100% opérationnel</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Orders per day -->
+                <!-- Orders per day + Popular dishes -->
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <div class="card shadow">
@@ -76,13 +80,12 @@ if (!sessionStorage.getItem('auth') || sessionStorage.getItem('role') !== 'admin
                             </div>
                             <div class="card-body">
                                 <ul id="orders-today" class="mb-0">
-                                    <!-- rempli par dashboard.js -->
+                                    <!-- rempli dynamiquement -->
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Popular dishes -->
                     <div class="col-md-6">
                         <div class="card shadow">
                             <div class="card-header bg-success text-white">
@@ -90,16 +93,16 @@ if (!sessionStorage.getItem('auth') || sessionStorage.getItem('role') !== 'admin
                             </div>
                             <div class="card-body">
                                 <ul id="popular-dishes" class="mb-0">
-                                    <!-- rempli par dashboard.js -->
+                                    <!-- rempli dynamiquement -->
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recent orders (optional placeholder, you can wire later) -->
+                <!-- Recent orders -->
                 <div class="card shadow mb-4">
-                    <div class="card-header bg-secondary text-white">
+                    <div class="card-header bg-success text-white">
                         Commandes récentes
                     </div>
                     <div class="card-body">
@@ -110,11 +113,11 @@ if (!sessionStorage.getItem('auth') || sessionStorage.getItem('role') !== 'admin
                                     <th>Client</th>
                                     <th>Total</th>
                                     <th>Serveur</th>
-                                    <th>Détails</th>
+                                    <th>Articles</th>
                                 </tr>
                             </thead>
                             <tbody id="recent-orders-body">
-                                <!-- vous pouvez remplir plus tard via api_dashboard.php -->
+                                <!-- rempli dynamiquement -->
                             </tbody>
                         </table>
                     </div>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Dec 11, 2025 at 07:44 PM
+-- Generation Time: Dec 11, 2025 at 10:48 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -93,7 +93,9 @@ CREATE TABLE `commandes` (
 --
 
 INSERT INTO `commandes` (`id`, `reference`, `id_client`, `id_serveur`, `date_commande`, `total`, `statut`, `mode_paiement`, `remarque`, `created_at`, `updated_at`) VALUES
-(1, 'CMD-20251121-0001', 1, 2, '2025-11-21 10:40:11', 27.50, 'en_attente', 'espece', NULL, '2025-11-21 10:40:11', '2025-11-21 10:40:11');
+(1, 'CMD-20251121-0001', 1, NULL, '2025-11-21 10:40:11', 27.50, 'en_attente', 'espece', NULL, '2025-11-21 10:40:11', '2025-11-21 10:40:11'),
+(2, 'CMD-20251211-212007-1320', 3, NULL, '2025-12-11 22:20:07', 202.00, 'en_attente', 'espece', NULL, '2025-12-11 22:20:07', '2025-12-11 22:20:07'),
+(3, 'CMD-20251211-213353-8075', 3, NULL, '2025-12-11 22:33:53', 220.00, 'en_attente', 'espece', NULL, '2025-12-11 22:33:53', '2025-12-11 22:33:53');
 
 -- --------------------------------------------------------
 
@@ -117,7 +119,24 @@ CREATE TABLE `ligne_commandes` (
 
 INSERT INTO `ligne_commandes` (`id`, `id_commande`, `id_plat`, `quantite`, `prix_unitaire`, `remarque`) VALUES
 (1, 1, 2, 1, 14.50, NULL),
-(2, 1, 4, 2, 6.50, NULL);
+(2, 1, 4, 2, 6.50, NULL),
+(3, 2, 6, 1, 18.00, NULL),
+(4, 2, 6, 1, 18.00, NULL),
+(5, 2, 6, 1, 18.00, NULL),
+(6, 2, 6, 1, 18.00, NULL),
+(7, 2, 6, 1, 18.00, NULL),
+(8, 2, 5, 1, 14.00, NULL),
+(9, 2, 5, 1, 14.00, NULL),
+(10, 2, 5, 1, 14.00, NULL),
+(11, 2, 5, 1, 14.00, NULL),
+(12, 2, 5, 1, 14.00, NULL),
+(13, 2, 5, 1, 14.00, NULL),
+(14, 2, 5, 1, 14.00, NULL),
+(15, 2, 5, 1, 14.00, NULL),
+(16, 3, 4, 4, 6.50, NULL),
+(17, 3, 5, 4, 14.00, NULL),
+(18, 3, 3, 3, 10.00, NULL),
+(19, 3, 6, 6, 18.00, NULL);
 
 --
 -- Triggers `ligne_commandes`
@@ -261,9 +280,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nom`, `email`, `telephone`, `role`, `password_hash`, `actif`, `created_at`, `updated_at`) VALUES
-(1, 'Admin Principal', 'admin@resto.local', '21650000000', 'admin', '$2y$12$Eb4ej0btiYtdByok7oN2QuMaizz8Hr1bMQP/RgIpJN/2Wr3nU5L9O', 1, '2025-11-21 10:40:11', '2025-12-11 18:50:36'),
-(2, 'Sami Serveur', 'sami@resto.local', '21650000001', 'serveur', '$2y$12$bJT3eDmNzpUXoaAkrKHyQex2jwnrUM7SfN8ddcIwBRXPtBEeOLBzu', 1, '2025-11-21 10:40:11', '2025-12-11 19:43:34'),
-(3, 'Fatma Cuisiniere', 'fatma@resto.local', '21650000002', 'cuisinier', '$2y$12$WckcSwVoyfxtlAN8qyvTM.PK8sU4ddW9FjMq1M5E2I9IIHj4dQqRK', 1, '2025-11-21 10:40:11', '2025-12-11 19:43:47');
+(1, 'Admin Principal', 'admin@resto.local', '21650000000', 'admin', '$2y$12$Eb4ej0btiYtdByok7oN2QuMaizz8Hr1bMQP/RgIpJN/2Wr3nU5L9O', 1, '2025-11-21 10:40:11', '2025-12-11 18:50:36');
 
 --
 -- Indexes for dumped tables
@@ -355,13 +372,13 @@ ALTER TABLE `clients`
 -- AUTO_INCREMENT for table `commandes`
 --
 ALTER TABLE `commandes`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `ligne_commandes`
 --
 ALTER TABLE `ligne_commandes`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `logs`
