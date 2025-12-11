@@ -1,8 +1,6 @@
 <?php
 // login.php
 session_start();
-// DO NOT redirect away from login.php automatically here.
-// Just show the form; redirect only after successful login in JS.
 ?>
 <!doctype html>
 <html lang="fr">
@@ -117,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(data => {
             if (data.status === 'ok') {
-                // set front-end auth for guards
+                // Store in sessionStorage for guards
                 sessionStorage.setItem('auth', '1');
                 sessionStorage.setItem('role', data.role || 'client');
 

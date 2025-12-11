@@ -45,7 +45,7 @@ if ($action === 'login') {
             'id'    => $client['id'],
             'role'  => 'client',
             'name'  => $client['nom'],
-            'email' => $client['email']
+            'email' => $client['email'],
         ];
 
         echo json_encode(['status' => 'ok', 'role' => 'client']);
@@ -60,9 +60,9 @@ if ($action === 'login') {
     if ($admin && !empty($admin['password_hash']) && password_verify($password, $admin['password_hash'])) {
         $_SESSION['auth'] = [
             'id'    => $admin['id'],
-            'role'  => $admin['role'],
+            'role'  => $admin['role'],   // 'admin', 'serveur', ...
             'name'  => $admin['nom'],
-            'email' => $admin['email']
+            'email' => $admin['email'],
         ];
 
         echo json_encode(['status' => 'ok', 'role' => 'admin']);

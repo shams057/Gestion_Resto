@@ -7,7 +7,7 @@ if (ordersContainer && popularContainer) {
     fetch('api_dashboard.php')
         .then(res => {
             if (res.status === 401) {
-                // Not authorized -> go back to login
+                // Not logged in as admin -> back to login
                 window.location.href = 'login.php';
                 return Promise.reject(new Error('Unauthorized'));
             }
@@ -16,7 +16,7 @@ if (ordersContainer && popularContainer) {
         .then(data => {
             if (!data) return;
 
-            // Orders today
+            // Orders per day (data.orders from api_dashboard.php)
             ordersContainer.innerHTML = "";
             (data.orders || []).forEach(o => {
                 const li = document.createElement("li");
@@ -24,7 +24,7 @@ if (ordersContainer && popularContainer) {
                 ordersContainer.appendChild(li);
             });
 
-            // Popular dishes
+            // Popular dishes (data.popular from api_dashboard.php)
             popularContainer.innerHTML = "";
             (data.popular || []).forEach(p => {
                 const li = document.createElement("li");
