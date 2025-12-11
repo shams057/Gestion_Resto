@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Dec 11, 2025 at 06:08 PM
+-- Generation Time: Dec 11, 2025 at 07:44 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -65,7 +65,8 @@ CREATE TABLE `clients` (
 
 INSERT INTO `clients` (`id`, `nom`, `telephone`, `email`, `note`, `created_at`, `password_hash`) VALUES
 (1, 'Ahmed', '21690000001', 'ahmed@mail.local', NULL, '2025-11-21 10:40:11', '01470258369'),
-(2, 'Maryem', '21690000002', 'maryem@mail.local', NULL, '2025-11-21 10:40:11', '01470258/36');
+(2, 'Maryem', '21690000002', 'maryem@mail.local', NULL, '2025-11-21 10:40:11', '0147025836'),
+(3, 'shams', '21690062010', 'shamsnasfi057@gmail.com', NULL, '2025-12-11 18:10:28', '$2y$12$PdKKpwoBW5uAt3o8kW8.fuWpTzl4j1Gomi/3e2kUGYi5feALisKnG');
 
 -- --------------------------------------------------------
 
@@ -260,9 +261,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nom`, `email`, `telephone`, `role`, `password_hash`, `actif`, `created_at`, `updated_at`) VALUES
-(1, 'Admin Principal', 'admin@resto.local', '21650000000', 'admin', '74108520963', 1, '2025-11-21 10:40:11', '2025-12-09 19:02:43'),
-(2, 'Sami Serveur', 'sami@resto.local', '21650000001', 'serveur', '7410852096', 1, '2025-11-21 10:40:11', '2025-12-09 19:02:58'),
-(3, 'Fatma Cuisiniere', 'fatma@resto.local', '21650000002', 'cuisinier', '741085209', 1, '2025-11-21 10:40:11', '2025-12-09 19:03:02');
+(1, 'Admin Principal', 'admin@resto.local', '21650000000', 'admin', '$2y$12$Eb4ej0btiYtdByok7oN2QuMaizz8Hr1bMQP/RgIpJN/2Wr3nU5L9O', 1, '2025-11-21 10:40:11', '2025-12-11 18:50:36'),
+(2, 'Sami Serveur', 'sami@resto.local', '21650000001', 'serveur', '$2y$12$bJT3eDmNzpUXoaAkrKHyQex2jwnrUM7SfN8ddcIwBRXPtBEeOLBzu', 1, '2025-11-21 10:40:11', '2025-12-11 19:43:34'),
+(3, 'Fatma Cuisiniere', 'fatma@resto.local', '21650000002', 'cuisinier', '$2y$12$WckcSwVoyfxtlAN8qyvTM.PK8sU4ddW9FjMq1M5E2I9IIHj4dQqRK', 1, '2025-11-21 10:40:11', '2025-12-11 19:43:47');
 
 --
 -- Indexes for dumped tables
@@ -348,7 +349,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `clients`
 --
 ALTER TABLE `clients`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `commandes`
