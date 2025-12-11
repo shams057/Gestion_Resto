@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Dec 08, 2025 at 01:35 PM
+-- Generation Time: Dec 11, 2025 at 06:08 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -55,16 +55,17 @@ CREATE TABLE `clients` (
   `telephone` varchar(30) DEFAULT NULL,
   `email` varchar(150) DEFAULT NULL,
   `note` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `password_hash` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `clients`
 --
 
-INSERT INTO `clients` (`id`, `nom`, `telephone`, `email`, `note`, `created_at`) VALUES
-(1, 'Ahmed', '21690000001', 'ahmed@mail.local', NULL, '2025-11-21 10:40:11'),
-(2, 'Maryem', '21690000002', 'maryem@mail.local', NULL, '2025-11-21 10:40:11');
+INSERT INTO `clients` (`id`, `nom`, `telephone`, `email`, `note`, `created_at`, `password_hash`) VALUES
+(1, 'Ahmed', '21690000001', 'ahmed@mail.local', NULL, '2025-11-21 10:40:11', '01470258369'),
+(2, 'Maryem', '21690000002', 'maryem@mail.local', NULL, '2025-11-21 10:40:11', '01470258/36');
 
 -- --------------------------------------------------------
 
@@ -259,51 +260,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nom`, `email`, `telephone`, `role`, `password_hash`, `actif`, `created_at`, `updated_at`) VALUES
-(1, 'Admin Principal', 'admin@resto.local', '21650000000', 'admin', NULL, 1, '2025-11-21 10:40:11', '2025-11-21 10:40:11'),
-(2, 'Sami Serveur', 'sami@resto.local', '21650000001', 'serveur', NULL, 1, '2025-11-21 10:40:11', '2025-11-21 10:40:11'),
-(3, 'Fatma Cuisiniere', 'fatma@resto.local', '21650000002', 'cuisinier', NULL, 1, '2025-11-21 10:40:11', '2025-11-21 10:40:11');
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `vue_commandes_jour`
--- (See below for the actual view)
---
-CREATE TABLE `vue_commandes_jour` (
-`date` date
-,`nb_commandes` bigint(21)
-,`total_revenu` decimal(32,2)
-);
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `vue_plats_populaires`
--- (See below for the actual view)
---
-CREATE TABLE `vue_plats_populaires` (
-`id` int(10) unsigned
-,`nom` varchar(150)
-,`quantite_vendue` decimal(32,0)
-);
-
--- --------------------------------------------------------
-
---
--- Structure for view `vue_commandes_jour`
---
-DROP TABLE IF EXISTS `vue_commandes_jour`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_commandes_jour`  AS SELECT cast(`commandes`.`date_commande` as date) AS `date`, count(0) AS `nb_commandes`, coalesce(sum(`commandes`.`total`),0) AS `total_revenu` FROM `commandes` GROUP BY cast(`commandes`.`date_commande` as date) ORDER BY cast(`commandes`.`date_commande` as date) DESC ;
-
--- --------------------------------------------------------
-
---
--- Structure for view `vue_plats_populaires`
---
-DROP TABLE IF EXISTS `vue_plats_populaires`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_plats_populaires`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, sum(`l`.`quantite`) AS `quantite_vendue` FROM (`plats` `p` join `ligne_commandes` `l` on(`p`.`id` = `l`.`id_plat`)) GROUP BY `p`.`id`, `p`.`nom` ORDER BY sum(`l`.`quantite`) DESC ;
+(1, 'Admin Principal', 'admin@resto.local', '21650000000', 'admin', '74108520963', 1, '2025-11-21 10:40:11', '2025-12-09 19:02:43'),
+(2, 'Sami Serveur', 'sami@resto.local', '21650000001', 'serveur', '7410852096', 1, '2025-11-21 10:40:11', '2025-12-09 19:02:58'),
+(3, 'Fatma Cuisiniere', 'fatma@resto.local', '21650000002', 'cuisinier', '741085209', 1, '2025-11-21 10:40:11', '2025-12-09 19:03:02');
 
 --
 -- Indexes for dumped tables

@@ -1,3 +1,8 @@
+<script>
+if (!sessionStorage.getItem('auth')) {
+    window.location.href = 'login.php';
+}
+</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,11 +12,12 @@
     <link rel="stylesheet" href="styleBP.css">
 </head>
 <body>
-
     <!-- NAVBAR -->
     <nav class="navbar">
         <div class="logo">FoodMarket</div>
-        <button id="cart-btn">Cart (<span id="cart-count">0</span>)</button>
+        <button id="cart-btn">
+            Cart <span id="cart-count">0</span>
+        </button>
     </nav>
 
     <div class="container">
@@ -19,15 +25,17 @@
         <aside class="sidebar">
             <h3>Filters</h3>
             <input id="search-input" type="text" placeholder="Search food...">
+
             <select id="category-filter">
                 <option value="all">All Categories</option>
             </select>
 
-            <h4>Allergies:</h4>
+            <h4>Allergies</h4>
             <div id="allergy-filters"></div>
         </aside>
 
         <!-- PRODUCTS GRID -->
+        <!-- IMPORTANT: apply .products class for CSS grid -->
         <main id="products" class="products"></main>
     </div>
 
@@ -35,7 +43,7 @@
     <div id="cart-card" class="cart-card">
         <h3>Shopping Cart</h3>
         <ul id="cart-items"></ul>
-        <p>Total: <strong id="cart-total">0.00 TND</strong></p>
+        <p>Total <strong id="cart-total">0.00 TND</strong></p>
         <button id="buy-btn">Buy Now</button>
     </div>
 
