@@ -155,79 +155,101 @@ if ($action === 'login') {
 //
 // cart.php sends:
 // fetch('api.php?action=createorder', { method: 'POST', body: JSON.stringify({ cart, total }) })
-if ($action === 'createorder') {
-    if (empty($_SESSION['client_id'])) {
-        json_response(['success' => false, 'error' => 'Non authentifié'], 401);
+if ($action === 'create_order') {
+    // Require a logged-in client
+    if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'client') {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized']);
+        exit;
     }
 
-    $input = json_decode(file_get_contents('php://input'), true);
-    $cart  = $input['cart'] ?? [];
-    $total = $input['total'] ?? 0;
+    $data = json_decode(file_get_contents('php://input'), true);
 
-    if (!is_array($cart) || count($cart) === 0) {
-        json_response(['success' => false, 'error' => 'Panier vide'], 400);
+    if (!$data || !isset($data['cart']) || !is_array($data['cart']) || empty($data['cart'])) {
+        echo json_encode(['success' => false, 'error' => 'Panier vide ou invalide.']);
+        exit;
     }
 
-    $clientId = (int)$_SESSION['client_id'];
+    $cart = $data['cart'];
+    $total = 0.0;
+
+    foreach ($cart as $item) {
+        if (!isset($item['name']) || !isset($item['price']) || !isset($item['quantity'])) {
+            continue;
+        }
+        $total += (float)$item['price'] * (int)$item['quantity'];
+    }
+
+    if ($total <= 0) {
+        echo json_encode(['success' => false, 'error' => 'Montant total invalide.']);
+        exit;
+    }
 
     try {
         $pdo->beginTransaction();
 
-        $ref = 'CMD-' . date('Ymd-His-') . rand(1000, 9999);
+        $clientId = $_SESSION['auth']['id'];
+        $serveurId = null;
+        $ref = 'CMD-' . date('Ymd-His') . '-' . random_int(1000, 9999);
 
-        // Insert commande
-        $stmt = $pdo->prepare('
-            INSERT INTO commandes (reference, id_client, total, statut, mode_paiement, date_commande, created_at, updated_at)
-            VALUES (?, ?, ?, "en_attente", "espece", NOW(), NOW(), NOW())
-        ');
-        $stmt->execute([$ref, $clientId, $total]);
-        $orderId = (int)$pdo->lastInsertId();
+        $stmt = $pdo->prepare("
+            INSERT INTO commandes (reference, id_client, id_serveur, total, statut, mode_paiement, remarque)
+            VALUES (:ref, :cid, :sid, :total, 'en_attente', 'espece', NULL)
+        ");
+        $stmt->execute([
+            'ref'   => $ref,
+            'cid'   => $clientId,
+            'sid'   => $serveurId,
+            'total' => $total
+        ]);
 
-        // Prepare statements
-        $getPlat = $pdo->prepare('SELECT id, prix FROM plats WHERE nom = ? LIMIT 1');
-        $insertLine = $pdo->prepare('
-            INSERT INTO ligne_commandes (id_commande, id_plat, quantite, prix_unitaire, remarque)
-            VALUES (?, ?, ?, ?, NULL)
-        ');
+        $commandeId = (int) $pdo->lastInsertId();
 
         foreach ($cart as $item) {
-            $name = $item['name'] ?? '';
-            $qty  = (int)($item['quantity'] ?? 0);
-
-            if ($qty <= 0 || $name === '') {
+            if (!isset($item['name']) || !isset($item['price']) || !isset($item['quantity'])) {
                 continue;
             }
 
-            $getPlat->execute([$name]);
-            $plat = $getPlat->fetch();
-            if (!$plat) {
+            $name = $item['name'];
+            $price = (float) $item['price'];
+            $qty = (int) $item['quantity'];
+
+            $p = $pdo->prepare("SELECT id FROM plats WHERE nom = :nom LIMIT 1");
+            $p->execute(['nom' => $name]);
+            $platId = $p->fetchColumn();
+
+            if (!$platId) {
                 continue;
             }
 
-            $insertLine->execute([
-                $orderId,
-                $plat['id'],
-                $qty,
-                $plat['prix'],
+            $lp = $pdo->prepare("
+                INSERT INTO ligne_commandes (id_commande, id_plat, quantite, prix_unitaire, remarque)
+                VALUES (:cid, :pid, :qty, :prix, NULL)
+            ");
+            $lp->execute([
+                'cid'  => $commandeId,
+                'pid'  => $platId,
+                'qty'  => $qty,
+                'prix' => $price
             ]);
         }
 
         $pdo->commit();
 
-        json_response([
+        echo json_encode([
             'success'   => true,
-            'reference' => $ref,
-            'order_id'  => $orderId,
+            'commande_id' => $commandeId,
+            'reference' => $ref
         ]);
-    } catch (Throwable $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-
-        json_response([
+        exit;
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        http_response_code(500);
+        echo json_encode([
             'success' => false,
-            'error'   => 'Erreur lors de la création de la commande',
-        ], 500);
+            'error'   => 'Erreur lors de la création de la commande.'
+        ]);
+        exit;
     }
 }
 

@@ -57,30 +57,74 @@ let cart = [];
 function loadCartFromSession() {
     try {
         const stored = sessionStorage.getItem('cart');
-        if (stored) {
-            cart = JSON.parse(stored);
-        } else {
-            cart = [];
-        }
+        cart = stored ? JSON.parse(stored) : [];
     } catch (e) {
         console.error('Erreur lecture cart sessionStorage', e);
         cart = [];
     }
 }
 
+function saveCartToSession() {
+    try {
+        sessionStorage.setItem('cart', JSON.stringify(cart));
+    } catch (e) {
+        console.error('Erreur écriture cart sessionStorage', e);
+    }
+}
+
 function renderCartSummary() {
     listEl.innerHTML = '';
+    listEl.style.listStyle = 'none';
+    listEl.style.paddingLeft = '0';
+
     let total = 0;
 
-    cart.forEach(item => {
+    cart.forEach((item, index) => {
         const li = document.createElement('li');
+        li.style.display = 'flex';
+        li.style.alignItems = 'center';
+        li.style.justifyContent = 'space-between';
+        li.style.margin = '4px 0';
+
         const lineTotal = item.price * item.quantity;
-        li.textContent = `${item.name} x${item.quantity} - ${lineTotal.toFixed(2)} TND`;
-        listEl.appendChild(li);
         total += lineTotal;
+
+        li.innerHTML = `
+            <span>${item.name} x${item.quantity} - ${lineTotal.toFixed(2)} TND</span>
+            <span>
+                <button type="button" class="qty-btn" data-index="${index}" data-op="dec">-</button>
+                <button type="button" class="qty-btn" data-index="${index}" data-op="inc">+</button>
+            </span>
+        `;
+
+        listEl.appendChild(li);
     });
 
-    totalEl.textContent = `${total.toFixed(2)} TND`;
+    totalEl.textContent = total.toFixed(2) + ' TND';
+
+    listEl.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', onQtyButtonClick);
+    });
+}
+
+function onQtyButtonClick(e) {
+    const index = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+    const op = e.currentTarget.getAttribute('data-op');
+
+    if (Number.isNaN(index) || !cart[index]) return;
+
+    if (op === 'inc') {
+        cart[index].quantity += 1;
+    } else if (op === 'dec') {
+        cart[index].quantity -= 1;
+        if (cart[index].quantity <= 0) {
+            // remove item if quantity goes to 0
+            cart.splice(index, 1);
+        }
+    }
+
+    saveCartToSession();
+    renderCartSummary();
 }
 
 async function confirmOrder() {
@@ -89,7 +133,6 @@ async function confirmOrder() {
         return;
     }
 
-    // Require login at purchase time: rely on front-end flag set at login
     if (!sessionStorage.getItem('auth')) {
         const backUrl = encodeURIComponent(window.location.pathname);
         window.location.href = `login?redirect=${backUrl}`;
@@ -99,36 +142,23 @@ async function confirmOrder() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     try {
-        const res = await fetch('api.php?action=createorder', {
+        const res = await fetch('api.php?action=create_order', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                cart: cart,
-                total: total
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart, total })
         });
 
-        let data = null;
-        try {
-            data = await res.json();
-        } catch (e) {
-            data = null;
-        }
+        const data = await res.json().catch(() => null);
 
         if (!res.ok || !data || data.success === false) {
-            alert(data && data.error ? data.error : "Erreur lors de la création de la commande.");
+            alert((data && data.error) || 'Erreur lors de la création de la commande.');
             return;
         }
 
-        alert("Commande confirmée ! Référence: " + data.reference);
+        alert('Commande confirmée ! Référence: ' + data.reference);
 
-        // Clear local cart only after successful confirmation
         cart = [];
         sessionStorage.removeItem('cart');
-
-        // Go back to shop, cart for this user still exists in DB
         window.location.href = 'shop';
     } catch (e) {
         console.error('Order error', e);
@@ -142,5 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmBtn.addEventListener('click', confirmOrder);
 });
 </script>
+
 </body>
 </html>
