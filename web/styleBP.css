@@ -1,44 +1,50 @@
-* { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
 
 body {
-    background:#f4f5f7;
-    display:flex;
-    flex-direction:column;
+    background: #f4f5f7;
+    display: flex;
+    flex-direction: column;
 }
 
 /* NAVBAR */
 .navbar {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:15px 20px;
-    background:#2c3e50;
-    color:white;
-    position:sticky;
-    top:0;
-    z-index:100;
-    border-radius:0 0 15px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #2c3e50;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-radius: 0 0 15px 15px;
 }
 
 .navbar button {
-    padding:8px 12px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    background:#e67e22;
-    color:white;
-    font-weight:bold;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #e67e22;
+    color: white;
+    font-weight: bold;
 }
 
 /* LAYOUT */
 .container {
-    display:flex;
-    padding:20px;
+    display: flex;
+    padding: 20px;
 }
 
 /* SIDEBAR */
 .sidebar {
-    position: relative; /* Needed for positioning dropdown arrow */
+    position: relative;
+    /* Needed for positioning dropdown arrow */
 }
 
 /* Unified style for search input and dropdown */
@@ -46,11 +52,15 @@ body {
 .sidebar select {
     width: 100%;
     padding: 10px 12px;
-    border-radius: 8px;           /* Rounded corners */
-    border: 1px solid #ccc;       /* Subtle border */
-    background: #f5f6fa;          /* Light background matching page */
+    border-radius: 8px;
+    /* Rounded corners */
+    border: 1px solid #ccc;
+    /* Subtle border */
+    background: #f5f6fa;
+    /* Light background matching page */
     font-size: 14px;
-    appearance: none;              /* Remove default arrow for select */
+    appearance: none;
+    /* Remove default arrow for select */
     cursor: pointer;
     margin-bottom: 15px;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -58,9 +68,7 @@ body {
 
 /* Optional: custom arrow for dropdown */
 .sidebar select {
-    background: #f5f6fa 
-                url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') 
-                no-repeat right 12px center;
+    background: #f5f6fa url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 12px center;
     background-size: 16px;
 }
 
@@ -69,7 +77,7 @@ body {
 .sidebar select:focus {
     outline: none;
     border-color: #3498db;
-    box-shadow: 0 0 5px rgba(52,152,219,0.3);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
 
 /* Dropdown options padding */
@@ -79,105 +87,120 @@ body {
 
 /* PRODUCTS GRID */
 .products {
-    flex:1;
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-    gap:20px;
-    margin-left:20px;
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    margin-left: 20px;
 }
 
 .card {
-    background:white;
-    border-radius:12px;
-    padding:15px;
-    display:flex;
-    flex-direction:column;
-    box-shadow:0 3px 10px rgba(0,0,0,0.1);
-    transition:0.2s;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: 0.2s;
 }
 
 .card img {
-    width:100%;
-    height:150px;
-    object-fit:cover;
-    border-radius:10px;
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
 }
 
 .card button {
-    margin-top:auto;
-    padding:8px;
-    background:#2ecc71;
-    border:none;
-    border-radius:8px;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
-    transition:0.2s;
+    margin-top: auto;
+    padding: 8px;
+    background: #2ecc71;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
 .card button:hover {
-    background:#27ae60;
+    background: #27ae60;
 }
 
 .card:hover {
-    transform:scale(1.02);
+    transform: scale(1.02);
 }
 
 /* CART CARD */
 .cart-card {
-    position:fixed;
-    top:100px;
-    right:-350px; /* hidden initially */
-    width:300px;
-    background:white;
-    border-radius:12px;
-    padding:15px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.3);
-    transition:right 0.4s ease;
-    z-index:200;
+    position: fixed;
+    top: 100px;
+    right: -350px;
+    /* hidden initially */
+    width: 300px;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: right 0.4s ease;
+    z-index: 200;
 }
 
 .cart-card.visible {
-    right:20px;
+    right: 20px;
 }
 
 .cart-card h3 {
-    margin-bottom:10px;
-    color:#2c3e50;
+    margin-bottom: 10px;
+    color: #2c3e50;
 }
 
 .cart-card ul {
-    list-style:none;
-    max-height:200px;
-    overflow-y:auto;
-    margin-bottom:10px;
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
 }
 
 .cart-card li {
-    margin-bottom:5px;
-    border-bottom:1px solid #eee;
-    padding-bottom:5px;
-    font-size:14px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    font-size: 14px;
 }
 
 #buy-btn {
-    width:100%;
-    padding:8px;
-    background:#e74c3c;
-    color:white;
-    border:none;
-    border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
+    width: 100%;
+    padding: 8px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
 }
+
 #buy-btn:hover {
-    background:#c0392b;
+    background: #c0392b;
 }
+
 .tag {
-  background: #ffdfdf;
-  padding: 3px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  margin-right: 5px;
-  display: inline-block;
+    background: #ffdfdf;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+.cart-container {
+    min-height: 100vh;
+    /* full viewport height */
+    display: flex;
+    flex-direction: column;
+    /* content stacked vertically */
+    justify-content: center;
+    /* vertical center */
+    align-items: center;
+    /* horizontal center */
 }

@@ -38,7 +38,6 @@ function displayProducts(items) {
         `;
 
         card.querySelector("button").addEventListener("click", () => addToCart(food));
-
         productsContainer.appendChild(card);
     });
 }
@@ -135,7 +134,7 @@ function setupFilters(data) {
 }
 
 // ===================== FETCH DATABASE DATA =====================
-fetch("api.php")
+fetch("/api.php")
     .then(res => res.json())
     .then(data => {
         foods = data.map(f => ({
@@ -160,39 +159,12 @@ cartBtn.addEventListener("click", () =>
     cartCard.classList.toggle("visible")
 );
 
-buyBtn.addEventListener("click", async () => {
+// Now just go to cart page, do not call API directly
+buyBtn.addEventListener("click", () => {
     if (cart.length === 0) {
         alert("Votre panier est vide.");
         return;
     }
-
-    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-    try {
-        const res = await fetch("api.php?action=create_order", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                cart,
-                total
-            })
-        });
-
-        const data = await res.json().catch(() => null);
-
-        if (!res.ok || !data || data.success === false) {
-            alert((data && data.error) || "Erreur lors de la création de la commande.");
-            return;
-        }
-
-        alert("Commande confirmée ! Référence: " + (data.reference || ""));
-        cart = [];
-        updateCart();
-        cartCard.classList.remove("visible");
-    } catch (e) {
-        console.error("Order error:", e);
-        alert("Erreur réseau lors de la commande.");
-    }
+    sessionStorage.setItem("cart", JSON.stringify(cart));
+    window.location.href = "cart";   // /web/cart.php via .htaccess or direct
 });

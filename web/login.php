@@ -1,5 +1,4 @@
 <?php
-// login.php
 session_start();
 ?>
 <!doctype html>
@@ -74,7 +73,7 @@ session_start();
 
     <p class="muted">
         Don't have an account?
-        <a class="link" href="signup.php">Create one</a>
+        <a class="link" href="signup">Create one</a>
     </p>
 </div>
 
@@ -99,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             password: formData.get('password')
         };
 
-        fetch('api.php?action=login', {
+        fetch('/api.php?action=login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -115,14 +114,18 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(data => {
             if (data.status === 'ok') {
-                // Store in sessionStorage for guards
                 sessionStorage.setItem('auth', '1');
                 sessionStorage.setItem('role', data.role || 'client');
 
-                if (data.role === 'admin') {
-                    window.location.href = 'dashboard.html';
+                const params = new URLSearchParams(window.location.search);
+                const redirect = params.get('redirect');
+
+                if (redirect) {
+                    window.location.href = redirect;            // e.g. /web/cart
+                } else if (data.role === 'admin') {
+                    window.location.href = 'dashboard';         // /web/dashboard.html
                 } else {
-                    window.location.href = 'buypage.html';
+                    window.location.href = 'shop';              // /web/buypage.html
                 }
             } else {
                 const msg = data.message || data.error || 'Incorrect login';

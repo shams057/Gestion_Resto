@@ -1,4 +1,4 @@
 sudo /opt/lampp/lampp start
 sudo systemctl stop apache2
 sudo /opt/lampp/lampp restart
-php -S localhost:8000
+php -S localhost:8000 -t web web/router.php

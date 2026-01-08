@@ -1,6 +1,6 @@
 <script>
 if (!sessionStorage.getItem('auth') || sessionStorage.getItem('role') !== 'admin') {
-    window.location.href = 'login.php';
+    window.location.href = 'login';
 }
 </script>
 <!DOCTYPE html>
@@ -9,125 +9,116 @@ if (!sessionStorage.getItem('auth') || sessionStorage.getItem('role') !== 'admin
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - Gestion Resto</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-dark bg-dark px-3">
-        <a class="navbar-brand fw-bold" href="#">Tableau de Bord</a>
-        <div class="d-flex align-items-center">
-            <span class="text-white me-3">Admin</span>
-            <a class="btn btn-outline-light" href="logout.php">Déconnexion</a>
-        </div>
-    </nav>
-
-    <div class="container-fluid">
-        <div class="row">
-            <!-- SIDEBAR -->
-            <nav class="col-md-2 sidebar d-flex flex-column pt-4">
-                <a href="#">Dashboard</a>
-                <a href="#">Gestion des utilisateurs</a>
-                <a href="#">Paramètres</a>
-                <a href="#">Logs système</a>
-                <a href="#">Statistiques</a>
-                <a href="logout.php">Déconnexion</a>
-            </nav>
-
-            <!-- MAIN CONTENT -->
-            <main class="col-md-10 content-area p-4">
-                <h3 class="mb-4 fw-bold">Vue générale</h3>
-
-                <!-- STAT CARDS -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card shadow stat-card p-3 text-center">
-                            <h6 class="text-muted">Revenu total</h6>
-                            <h2 id="stat-revenue" class="fw-bold">0 TND</h2>
-                            <span class="text-success small"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card shadow stat-card p-3 text-center">
-                            <h6 class="text-muted">Transactions</h6>
-                            <h2 id="stat-orders" class="fw-bold">0</h2>
-                            <span class="text-primary small"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card shadow stat-card p-3 text-center">
-                            <h6 class="text-muted">Alertes</h6>
-                            <h2 id="stat-alerts" class="fw-bold">0</h2>
-                            <span class="text-danger small"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card shadow stat-card p-3 text-center">
-                            <h6 class="text-muted">Serveur</h6>
-                            <h2 id="stat-server" class="fw-bold text-success">En ligne</h2>
-                            <span class="small">100% opérationnel</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Orders per day + Popular dishes -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card shadow">
-                            <div class="card-header bg-primary text-white">
-                                Commandes par jour (7 derniers jours)
-                            </div>
-                            <div class="card-body">
-                                <ul id="orders-today" class="mb-0">
-                                    <!-- rempli dynamiquement -->
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="card shadow">
-                            <div class="card-header bg-success text-white">
-                                Plats les plus populaires
-                            </div>
-                            <div class="card-body">
-                                <ul id="popular-dishes" class="mb-0">
-                                    <!-- rempli dynamiquement -->
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent orders -->
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-success text-white">
-                        Commandes récentes
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Client</th>
-                                    <th>Total</th>
-                                    <th>Serveur</th>
-                                    <th>Articles</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recent-orders-body">
-                                <!-- rempli dynamiquement -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </main>
-        </div>
+<nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand fw-bold" href="#">Tableau de Bord</a>
+    <div class="d-flex align-items-center">
+        <span class="text-white me-3">Admin</span>
+        <a class="btn btn-outline-light" href="logout">Déconnexion</a>
     </div>
+</nav>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="dashboard.js"></script>
+<div class="container-fluid">
+    <div class="row">
+        <!-- SIDEBAR -->
+        <nav class="col-md-2 sidebar d-flex flex-column pt-4">
+            <a href="dashboard">Dashboard</a>
+            <a href="shop">Boutique / Commandes</a>
+            <a href="#">Gestion des utilisateurs</a>
+            <a href="#">Paramètres</a>
+            <a href="#">Logs système</a>
+            <a href="#">Statistiques</a>
+            <a href="logout">Déconnexion</a>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="col-md-10 content-area p-4">
+            <h3 class="mb-4 fw-bold">Vue générale</h3>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow stat-card p-3 text-center">
+                        <h6 class="text-muted">Revenu total</h6>
+                        <h2 id="stat-revenue" class="fw-bold">0 TND</h2>
+                        <span class="text-success small"></span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow stat-card p-3 text-center">
+                        <h6 class="text-muted">Transactions</h6>
+                        <h2 id="stat-orders" class="fw-bold">0</h2>
+                        <span class="text-primary small"></span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow stat-card p-3 text-center">
+                        <h6 class="text-muted">Alertes</h6>
+                        <h2 id="stat-alerts" class="fw-bold">0</h2>
+                        <span class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow stat-card p-3 text-center">
+                        <h6 class="text-muted">Serveur</h6>
+                        <h2 id="stat-server" class="fw-bold text-success">En ligne</h2>
+                        <span class="small">100% opérationnel</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders per day + Popular dishes -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            Commandes par jour (7 derniers jours)
+                        </div>
+                        <div class="card-body">
+                            <ul id="orders-today" class="mb-0"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-success text-white">
+                            Plats les plus populaires
+                        </div>
+                        <div class="card-body">
+                            <ul id="popular-dishes" class="mb-0"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent orders -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    Commandes récentes
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Total</th>
+                                <th>Serveur</th>
+                                <th>Articles</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-orders-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/dashboard.js"></script>
 </body>
 </html>

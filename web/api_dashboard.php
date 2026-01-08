@@ -3,7 +3,6 @@ header('Content-Type: application/json; charset=utf-8');
 
 session_start();
 
-// Only admins can access
 if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'admin') {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
@@ -33,12 +32,10 @@ try {
 }
 
 try {
-    // Stats
     $totalRevenue = (float)$pdo->query("SELECT COALESCE(SUM(total),0) FROM commandes")->fetchColumn();
     $ordersCount  = (int)$pdo->query("SELECT COUNT(*) FROM commandes")->fetchColumn();
     $alertsCount  = (int)$pdo->query("SELECT COUNT(*) FROM logs")->fetchColumn();
 
-    // Orders per day (last 7 days)
     $ordersStmt = $pdo->query("
         SELECT DATE(date_commande) AS date,
                COUNT(*) AS nb_commandes,
@@ -50,7 +47,6 @@ try {
     ");
     $ordersPerDay = $ordersStmt->fetchAll();
 
-    // Popular dishes
     $popularStmt = $pdo->query("
         SELECT p.id,
                p.nom,
@@ -63,7 +59,6 @@ try {
     ");
     $popular = $popularStmt->fetchAll();
 
-    // Recent orders
     $recentOrdersStmt = $pdo->query("
         SELECT co.id,
                co.date_commande,
@@ -79,7 +74,6 @@ try {
     $recent = [];
 
     foreach ($recentOrdersRaw as $ro) {
-        // Client name
         $client = 'Client inconnu';
         if (!empty($ro['id_client'])) {
             $c = $pdo->prepare("SELECT nom FROM clients WHERE id = :id LIMIT 1");
@@ -90,7 +84,6 @@ try {
             }
         }
 
-        // Serveur name
         $waiter = '';
         if (!empty($ro['id_serveur'])) {
             $s = $pdo->prepare("SELECT nom FROM users WHERE id = :id LIMIT 1");
@@ -101,7 +94,6 @@ try {
             }
         }
 
-        // Lines for this order
         $lc = $pdo->prepare("
             SELECT l.quantite,
                    l.prix_unitaire,
@@ -113,7 +105,6 @@ try {
         $lc->execute(['cid' => $ro['id']]);
         $lines = $lc->fetchAll();
 
-        // Group by produit and sum quantities
         $itemsGrouped = [];
         foreach ($lines as $ln) {
             $prod = $ln['produit'] ?? 'Plat';

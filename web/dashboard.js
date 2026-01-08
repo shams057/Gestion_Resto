@@ -1,12 +1,10 @@
 // dashboard.js
 
-// Elements for stats cards
 const statRevenue = document.getElementById("stat-revenue");
 const statOrders  = document.getElementById("stat-orders");
 const statAlerts  = document.getElementById("stat-alerts");
 const statServer  = document.getElementById("stat-server");
 
-// Elements for lists and table
 const ordersContainer  = document.getElementById("orders-today");
 const popularContainer = document.getElementById("popular-dishes");
 const recentTbody      = document.getElementById("recent-orders-body");
@@ -14,7 +12,7 @@ const recentTbody      = document.getElementById("recent-orders-body");
 fetch("api_dashboard.php")
     .then(res => {
         if (res.status === 401) {
-            window.location.href = "login.php";
+            window.location.href = "login";
             return Promise.reject(new Error("Unauthorized"));
         }
         return res.json();
@@ -22,7 +20,6 @@ fetch("api_dashboard.php")
     .then(data => {
         if (!data) return;
 
-        // ===== STATS CARDS =====
         if (data.stats) {
             if (statRevenue) {
                 const total = data.stats.total_revenue ?? 0;
@@ -39,7 +36,6 @@ fetch("api_dashboard.php")
             }
         }
 
-        // ===== ORDERS PER DAY =====
         if (ordersContainer) {
             ordersContainer.innerHTML = "";
             (data.orders || []).forEach(o => {
@@ -49,7 +45,6 @@ fetch("api_dashboard.php")
             });
         }
 
-        // ===== POPULAR DISHES =====
         if (popularContainer) {
             popularContainer.innerHTML = "";
             (data.popular || []).forEach(p => {
@@ -59,7 +54,6 @@ fetch("api_dashboard.php")
             });
         }
 
-        // ===== RECENT ORDERS TABLE =====
         if (recentTbody) {
             recentTbody.innerHTML = "";
             (data.recent_orders || []).forEach(r => {
