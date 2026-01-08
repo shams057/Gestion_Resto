@@ -1,255 +1,317 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+$host    = '127.0.0.1';
+$db      = 'gestion_resto';  // adjust if phpMyAdmin says otherwise
+$user    = 'root';          // adjust
+$pass    = '';              // adjust
+$charset = 'utf8mb4';
 
-session_start();
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+];
 
 try {
-    $pdo = new PDO(
-        'mysql:host=127.0.0.1;dbname=gestion_resto;charset=utf8mb4',
-        'root',
-        '',
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]
-    );
-} catch (PDOException $e) {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'DB connection failed', 'details' => $e->getMessage()]);
+    echo json_encode([
+        'error'   => 'DB connection error',
+        'details' => $e->getMessage(),
+    ]);
+    exit;
+}
+
+// =======================
+// 3) HELPER
+// =======================
+function json_response($data, int $code = 200): void {
+    http_response_code($code);
+    echo json_encode($data);
     exit;
 }
 
 $action = $_GET['action'] ?? null;
 
-if ($action === 'login') {
-    $data = json_decode(file_get_contents('php://input'), true);
-
-    if (!$data || !isset($data['email']) || !isset($data['password'])) {
-        echo json_encode(['status' => 'error', 'error' => 'Missing fields']);
-        exit;
-    }
-
-    $email = trim($data['email']);
-    $password = $data['password'];
-
-    // 1) Clients: check hash in clients.password_hash
-    $stmt = $pdo->prepare('SELECT * FROM clients WHERE email = ? LIMIT 1');
-    $stmt->execute([$email]);
-    $client = $stmt->fetch();
-
-    if ($client && !empty($client['password_hash']) && password_verify($password, $client['password_hash'])) {
-        $_SESSION['auth'] = [
-            'id' => $client['id'],
-            'role' => 'client',
-            'name' => $client['nom'],
-            'email' => $client['email']
-        ];
-
-        echo json_encode(['status' => 'ok', 'role' => 'client']);
-        exit;
-    }
-
-    // 2) Admin/users: check hash in users.password_hash
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
-    $stmt->execute([$email]);
-    $admin = $stmt->fetch();
-
-    if ($admin && !empty($admin['password_hash']) && password_verify($password, $admin['password_hash'])) {
-        $_SESSION['auth'] = [
-            'id' => $admin['id'],
-            'role' => $admin['role'],
-            'name' => $admin['nom'],
-            'email' => $admin['email']
-        ];
-
-        echo json_encode(['status' => 'ok', 'role' => 'admin']);
-        exit;
-    }
-
-    echo json_encode(['status' => 'error', 'error' => 'Invalid credentials']);
-    exit;
-}
-
+// =======================
+// 4) SIGNUP (FROM signup.php)
+// =======================
+//
+// signup.php sends:
+// fetch('api.php?action=signup', {
+//   method: 'POST',
+//   headers: { 'Content-Type': 'application/json' },
+//   body: JSON.stringify({ nom, telephone, email, password })
+// })
 if ($action === 'signup') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $input = json_decode(file_get_contents('php://input'), true);
 
-    if (
-        !$data ||
-        !isset($data['nom']) ||
-        !isset($data['email']) ||
-        !isset($data['password'])
-    ) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'Nom, email et mot de passe requis.'
-        ]);
-        exit;
+    $nom       = trim($input['nom'] ?? '');
+    $telephone = trim($input['telephone'] ?? '');
+    $email     = trim($input['email'] ?? '');
+    $password  = $input['password'] ?? '';
+
+    if ($nom === '' || $email === '' || $password === '') {
+        json_response(['success' => false, 'error' => 'Nom, email et mot de passe requis.'], 400);
     }
 
-    $nom = trim($data['nom']);
-    $telephone = isset($data['telephone']) ? trim($data['telephone']) : '';
-    $email = trim($data['email']);
-    $password = $data['password'];
-
+    // Check if email already exists
     $stmt = $pdo->prepare('SELECT id FROM clients WHERE email = ? LIMIT 1');
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'Cet email est déjà utilisé.'
-        ]);
-        exit;
+        json_response(['success' => false, 'error' => 'Cet email est déjà utilisé.'], 400);
     }
 
-    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $hash = password_hash($password, PASSWORD_BCRYPT);
 
-    $stmt = $pdo->prepare(
-        'INSERT INTO clients (nom, telephone, email, note, password_hash) VALUES (?, ?, ?, NULL, ?)'
-    );
+    $stmt = $pdo->prepare('
+        INSERT INTO clients (nom, telephone, email, password_hash, created_at)
+        VALUES (?, ?, ?, ?, NOW())
+    ');
     $stmt->execute([$nom, $telephone, $email, $hash]);
 
-    echo json_encode([
-        'success' => true,
-        'redirect' => 'buypage.html'
+    $clientId = (int)$pdo->lastInsertId();
+
+    $_SESSION['auth'] = [
+        'id'    => $clientId,
+        'email' => $email,
+        'nom'   => $nom,
+        'role'  => 'client',
+        'type'  => 'client',
+    ];
+    $_SESSION['client_id'] = $clientId;
+
+    json_response([
+        'success'  => true,
+        'redirect' => 'buypage.html',
     ]);
-    exit;
 }
 
-/**
- * New: create an order from buypage
- * Expects JSON: { cart: [{name, price}], total: number }
- */
-if ($action === 'create_order') {
-    // Require a logged-in client
-    if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'client') {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized']);
-        exit;
+// =======================
+// 5) LOGIN (USED BY login.php)
+// =======================
+//
+// login.php sends:
+// fetch('api.php?action=login', { method: 'POST', headers: {...}, body: JSON.stringify({ email, password }) })
+if ($action === 'login') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = trim($input['email'] ?? '');
+    $password = $input['password'] ?? '';
+
+    if ($email === '' || $password === '') {
+        json_response(['status' => 'error', 'message' => 'Email ou mot de passe manquant'], 400);
     }
 
-    $data = json_decode(file_get_contents('php://input'), true);
+    // Try client login first
+    $stmt = $pdo->prepare('SELECT id, nom, email, password_hash FROM clients WHERE email = ? LIMIT 1');
+    $stmt->execute([$email]);
+    $client = $stmt->fetch();
 
-    if (!$data || !isset($data['cart']) || !is_array($data['cart']) || empty($data['cart'])) {
-        echo json_encode(['success' => false, 'error' => 'Panier vide ou invalide.']);
-        exit;
+    if ($client && password_verify($password, $client['password_hash'])) {
+        $_SESSION['auth'] = [
+            'id'    => $client['id'],
+            'email' => $client['email'],
+            'nom'   => $client['nom'],
+            'role'  => 'client',
+            'type'  => 'client',
+        ];
+        $_SESSION['client_id'] = $client['id'];
+
+        json_response([
+            'status' => 'ok',
+            'role'   => 'client',
+        ]);
     }
 
-    $cart = $data['cart'];
-    $total = 0.0;
+    // Then try staff/users login (for dashboard)
+    $stmt = $pdo->prepare('SELECT id, nom, email, role, password_hash FROM users WHERE email = ? LIMIT 1');
+    $stmt->execute([$email]);
+    $userRow = $stmt->fetch();
 
-    // Compute total from cart to trust server-side
-    foreach ($cart as $item) {
-        if (!isset($item['name']) || !isset($item['price'])) {
-            continue;
-        }
-        $total += (float) $item['price'];
+    if ($userRow && password_verify($password, $userRow['password_hash'])) {
+        $_SESSION['auth'] = [
+            'id'    => $userRow['id'],
+            'email' => $userRow['email'],
+            'nom'   => $userRow['nom'],
+            'role'  => $userRow['role'],
+            'type'  => 'user',
+        ];
+
+        json_response([
+            'status' => 'ok',
+            'role'   => 'admin', // your JS checks admin vs client
+        ]);
     }
 
-    if ($total <= 0) {
-        echo json_encode(['success' => false, 'error' => 'Montant total invalide.']);
-        exit;
+    json_response(['status' => 'error', 'message' => 'Incorrect login'], 401);
+}
+
+// =======================
+// 6) CREATE ORDER (USED BY cart.php)
+// =======================
+//
+// cart.php sends:
+// fetch('api.php?action=createorder', { method: 'POST', body: JSON.stringify({ cart, total }) })
+if ($action === 'createorder') {
+    if (empty($_SESSION['client_id'])) {
+        json_response(['success' => false, 'error' => 'Non authentifié'], 401);
     }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $cart  = $input['cart'] ?? [];
+    $total = $input['total'] ?? 0;
+
+    if (!is_array($cart) || count($cart) === 0) {
+        json_response(['success' => false, 'error' => 'Panier vide'], 400);
+    }
+
+    $clientId = (int)$_SESSION['client_id'];
 
     try {
         $pdo->beginTransaction();
 
-        $clientId = $_SESSION['auth']['id'];
-        $serveurId = null; // no waiter for web order
-        $ref = 'CMD-' . date('Ymd-His') . '-' . random_int(1000, 9999);
+        $ref = 'CMD-' . date('Ymd-His-') . rand(1000, 9999);
 
-        // Insert into commandes
-        $stmt = $pdo->prepare("
-            INSERT INTO commandes (reference, id_client, id_serveur, total, statut, mode_paiement, remarque)
-            VALUES (:ref, :cid, :sid, :total, 'en_attente', 'espece', NULL)
-        ");
-        $stmt->execute([
-            'ref' => $ref,
-            'cid' => $clientId,
-            'sid' => $serveurId,
-            'total' => $total
-        ]);
+        // Insert commande
+        $stmt = $pdo->prepare('
+            INSERT INTO commandes (reference, id_client, total, statut, mode_paiement, date_commande, created_at, updated_at)
+            VALUES (?, ?, ?, "en_attente", "espece", NOW(), NOW(), NOW())
+        ');
+        $stmt->execute([$ref, $clientId, $total]);
+        $orderId = (int)$pdo->lastInsertId();
 
-        $commandeId = (int) $pdo->lastInsertId();
+        // Prepare statements
+        $getPlat = $pdo->prepare('SELECT id, prix FROM plats WHERE nom = ? LIMIT 1');
+        $insertLine = $pdo->prepare('
+            INSERT INTO ligne_commandes (id_commande, id_plat, quantite, prix_unitaire, remarque)
+            VALUES (?, ?, ?, ?, NULL)
+        ');
 
-        // Insert each cart line into ligne_commandes
         foreach ($cart as $item) {
-            if (!isset($item['name']) || !isset($item['price'])) {
+            $name = $item['name'] ?? '';
+            $qty  = (int)($item['quantity'] ?? 0);
+
+            if ($qty <= 0 || $name === '') {
                 continue;
             }
 
-            $name = $item['name'];
-            $price = (float) $item['price'];
-            $qty = isset($item['quantity']) ? (int) $item['quantity'] : 1;
-
-            // Find plat id by name
-            $p = $pdo->prepare("SELECT id FROM plats WHERE nom = :nom LIMIT 1");
-            $p->execute(['nom' => $name]);
-            $platId = $p->fetchColumn();
-
-            if (!$platId) {
-                // skip unknown items
+            $getPlat->execute([$name]);
+            $plat = $getPlat->fetch();
+            if (!$plat) {
                 continue;
             }
 
-            $lp = $pdo->prepare("
-                INSERT INTO ligne_commandes (id_commande, id_plat, quantite, prix_unitaire, remarque)
-                VALUES (:cid, :pid, :qty, :prix, NULL)
-            ");
-            $lp->execute([
-                'cid' => $commandeId,
-                'pid' => $platId,
-                'qty' => $qty,
-                'prix' => $price
+            $insertLine->execute([
+                $orderId,
+                $plat['id'],
+                $qty,
+                $plat['prix'],
             ]);
         }
 
         $pdo->commit();
 
-        echo json_encode(['success' => true, 'commande_id' => $commandeId, 'reference' => $ref]);
-        exit;
-    } catch (PDOException $e) {
-        $pdo->rollBack();
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Erreur lors de la création de la commande.']);
-        exit;
-    }
-}
-
-/**
- * DEFAULT: return plats for buypage with category name
- */
-try {
-    $stmt = $pdo->query(
-        'SELECT p.id,
-                p.nom,
-                p.description,
-                p.prix,
-                p.id_categorie,
-                c.nom AS categorie_nom,
-                p.image_url,
-                p.allergies
-         FROM plats p
-         LEFT JOIN categories c ON c.id = p.id_categorie
-         WHERE p.disponible = 1'
-    );
-    $plats = $stmt->fetchAll();
-
-    foreach ($plats as &$p) {
-        if (!empty($p['allergies'])) {
-            $p['allergies'] = array_map('trim', explode(',', $p['allergies']));
-        } else {
-            $p['allergies'] = [];
+        json_response([
+            'success'   => true,
+            'reference' => $ref,
+            'order_id'  => $orderId,
+        ]);
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
         }
-        $p['category'] = $p['categorie_nom'] ?: 'Autre';
+
+        json_response([
+            'success' => false,
+            'error'   => 'Erreur lors de la création de la commande',
+        ], 500);
+    }
+}
+
+// =======================
+// 7) GET CART (USED BY buypage.js)
+// =======================
+//
+// buypage.js calls:
+// fetch('api.php?action=getcart')
+if ($action === 'getcart') {
+    if (empty($_SESSION['client_id'])) {
+        json_response(['items' => []]);
     }
 
-    echo json_encode($plats);
-    exit;
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to load plats', 'details' => $e->getMessage()]);
-    exit;
+    $clientId = (int)$_SESSION['client_id'];
+
+    // Last en_attente order for this client
+    $stmt = $pdo->prepare('
+        SELECT id
+        FROM commandes
+        WHERE id_client = ? AND statut = "en_attente"
+        ORDER BY date_commande DESC
+        LIMIT 1
+    ');
+    $stmt->execute([$clientId]);
+    $order = $stmt->fetch();
+
+    if (!$order) {
+        json_response(['items' => []]);
+    }
+
+    $orderId = (int)$order['id'];
+
+    $stmt = $pdo->prepare('
+        SELECT lc.id,
+               lc.quantite,
+               lc.prix_unitaire,
+               p.nom AS name
+        FROM ligne_commandes lc
+        JOIN plats p ON p.id = lc.id_plat
+        WHERE lc.id_commande = ?
+    ');
+    $stmt->execute([$orderId]);
+    $rows = $stmt->fetchAll();
+
+    $items = [];
+    foreach ($rows as $r) {
+        $items[] = [
+            'id'       => (int)$r['id'],
+            'name'     => $r['name'],
+            'price'    => (float)$r['prix_unitaire'],
+            'quantity' => (int)$r['quantite'],
+        ];
+    }
+
+    json_response(['items' => $items]);
 }
+
+// =======================
+// 8) DEFAULT: LIST PRODUCTS (USED BY buypage.js)
+// =======================
+//
+// buypage.js does: fetch('api.php') with no action
+if ($action === null) {
+    $stmt = $pdo->query('
+        SELECT
+            p.id,
+            p.nom,
+            p.description,
+            p.prix,
+            c.nom AS category,
+            p.image_url,
+            p.allergies
+        FROM plats p
+        LEFT JOIN categories c ON c.id = p.id_categorie
+        WHERE p.disponible = 1
+    ');
+
+    $rows = $stmt->fetchAll();
+
+    json_response($rows);
+}
+
+// =======================
+// 9) UNKNOWN ACTION
+// =======================
+json_response(['error' => 'Unknown action'], 400);

@@ -192,15 +192,3 @@ body {
     margin-right: 5px;
     display: inline-block;
 }
-
-.cart-container {
-    min-height: 100vh;
-    /* full viewport height */
-    display: flex;
-    flex-direction: column;
-    /* content stacked vertically */
-    justify-content: center;
-    /* vertical center */
-    align-items: center;
-    /* horizontal center */
-}
