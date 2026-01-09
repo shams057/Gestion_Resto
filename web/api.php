@@ -2,15 +2,15 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-$host    = '127.0.0.1';
-$db      = 'gestion_resto';
-$user    = 'root';
-$pass    = '';
+$host = '127.0.0.1';
+$db = 'gestion_resto';
+$user = 'root';
+$pass = '';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ];
 
@@ -19,13 +19,14 @@ try {
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([
-        'error'   => 'DB connection error',
+        'error' => 'DB connection error',
         'details' => $e->getMessage(),
     ]);
     exit;
 }
 
-function json_response($data, int $code = 200): void {
+function json_response($data, int $code = 200): void
+{
     http_response_code($code);
     echo json_encode($data);
     exit;
@@ -39,10 +40,10 @@ $action = $_GET['action'] ?? null;
 if ($action === 'signup') {
     $input = json_decode(file_get_contents('php://input'), true);
 
-    $nom       = trim($input['nom'] ?? '');
+    $nom = trim($input['nom'] ?? '');
     $telephone = trim($input['telephone'] ?? '');
-    $email     = trim($input['email'] ?? '');
-    $password  = $input['password'] ?? '';
+    $email = trim($input['email'] ?? '');
+    $password = $input['password'] ?? '';
 
     if ($nom === '' || $email === '' || $password === '') {
         json_response(['success' => false, 'error' => 'Nom, email et mot de passe requis.'], 400);
@@ -63,7 +64,7 @@ if ($action === 'signup') {
     $stmt->execute([$nom, $telephone, $email, $hash]);
 
     json_response([
-        'success'  => true,
+        'success' => true,
         'redirect' => 'login',
     ]);
 }
@@ -87,17 +88,17 @@ if ($action === 'login') {
 
     if ($client && password_verify($password, $client['password_hash'])) {
         $_SESSION['auth'] = [
-            'id'    => $client['id'],
+            'id' => $client['id'],
             'email' => $client['email'],
-            'nom'   => $client['nom'],
-            'role'  => 'client',
-            'type'  => 'client',
+            'nom' => $client['nom'],
+            'role' => 'client',
+            'type' => 'client',
         ];
         $_SESSION['client_id'] = $client['id'];
 
         json_response([
             'status' => 'ok',
-            'role'   => 'client',
+            'role' => 'client',
         ]);
     }
 
@@ -108,21 +109,115 @@ if ($action === 'login') {
 
     if ($userRow && password_verify($password, $userRow['password_hash'])) {
         $_SESSION['auth'] = [
-            'id'    => $userRow['id'],
+            'id' => $userRow['id'],
             'email' => $userRow['email'],
-            'nom'   => $userRow['nom'],
-            'role'  => $userRow['role'],
-            'type'  => 'user',
+            'nom' => $userRow['nom'],
+            'role' => $userRow['role'],
+            'type' => 'user',
         ];
 
         json_response([
             'status' => 'ok',
-            'role'   => 'admin',
+            'role' => 'admin',
         ]);
     }
 
     json_response(['status' => 'error', 'message' => 'Incorrect login'], 401);
 }
+
+/**
+ * SAVE CART (per client)
+ */
+if ($action === 'save_cart') {
+    if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'client') {
+        json_response(['success' => false, 'error' => 'Unauthorized'], 401);
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $cart = $data['cart'] ?? [];
+
+    if (!is_array($cart)) {
+        json_response(['success' => false, 'error' => 'Panier invalide'], 400);
+    }
+
+    $clientId = (int) $_SESSION['auth']['id'];
+
+    try {
+        $pdo->beginTransaction();
+
+        // clear previous cart for this client
+        $del = $pdo->prepare('DELETE FROM carts WHERE id_client = :cid');
+        $del->execute([':cid' => $clientId]);
+
+        // insert current items
+        $ins = $pdo->prepare('
+            INSERT INTO carts (id_client, id_plat, quantite)
+            VALUES (:cid, :pid, :qty)
+        ');
+
+        foreach ($cart as $item) {
+            if (!isset($item['name']) || !isset($item['quantity'])) {
+                continue;
+            }
+
+            // find plat id by name
+            $p = $pdo->prepare('SELECT id FROM plats WHERE nom = :nom LIMIT 1');
+            $p->execute([':nom' => $item['name']]);
+            $platId = $p->fetchColumn();
+            if (!$platId) {
+                continue;
+            }
+
+            $qty = (int) $item['quantity'];
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $ins->execute([
+                ':cid' => $clientId,
+                ':pid' => $platId,
+                ':qty' => $qty,
+            ]);
+        }
+
+        $pdo->commit();
+        json_response(['success' => true]);
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        json_response(['success' => false, 'error' => 'Erreur lors de la sauvegarde du panier'], 500);
+    }
+}
+
+/**
+ * GET CART (from DB)
+ */
+if ($action === 'get_cart') {
+    if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'client') {
+        json_response(['cart' => []], 200); // not logged in -> empty cart
+    }
+
+    $clientId = (int) $_SESSION['auth']['id'];
+
+    $stmt = $pdo->prepare('
+        SELECT c.quantite, p.nom, p.prix
+        FROM carts c
+        JOIN plats p ON p.id = c.id_plat
+        WHERE c.id_client = :cid
+    ');
+    $stmt->execute([':cid' => $clientId]);
+    $rows = $stmt->fetchAll();
+
+    $cart = array_map(function ($row) {
+        return [
+            'name' => $row['nom'],
+            'price' => (float) $row['prix'],
+            'quantity' => (int) $row['quantite'],
+        ];
+    }, $rows);
+
+    json_response(['cart' => $cart]);
+}
+
 
 /**
  * CREATE ORDER
@@ -148,7 +243,7 @@ if ($action === 'create_order') {
         if (!isset($item['name']) || !isset($item['price']) || !isset($item['quantity'])) {
             continue;
         }
-        $total += (float)$item['price'] * (int)$item['quantity'];
+        $total += (float) $item['price'] * (int) $item['quantity'];
     }
 
     if ($total <= 0) {
@@ -168,9 +263,9 @@ if ($action === 'create_order') {
             VALUES (:ref, :cid, :sid, :total, 'en_attente', 'espece', NULL)
         ");
         $stmt->execute([
-            'ref'   => $ref,
-            'cid'   => $clientId,
-            'sid'   => $serveurId,
+            'ref' => $ref,
+            'cid' => $clientId,
+            'sid' => $serveurId,
             'total' => $total
         ]);
 
@@ -198,19 +293,24 @@ if ($action === 'create_order') {
                 VALUES (:cid, :pid, :qty, :prix, NULL)
             ");
             $lp->execute([
-                'cid'  => $commandeId,
-                'pid'  => $platId,
-                'qty'  => $qty,
+                'cid' => $commandeId,
+                'pid' => $platId,
+                'qty' => $qty,
                 'prix' => $price
             ]);
         }
 
+        // ===== clear DB cart for this client (new code) =====
+        $clear = $pdo->prepare('DELETE FROM carts WHERE id_client = :cid');
+        $clear->execute([':cid' => $clientId]);
+        // ====================================================
+
         $pdo->commit();
 
         echo json_encode([
-            'success'     => true,
+            'success' => true,
             'commande_id' => $commandeId,
-            'reference'   => $ref
+            'reference' => $ref
         ]);
         exit;
     } catch (PDOException $e) {
@@ -218,7 +318,7 @@ if ($action === 'create_order') {
         http_response_code(500);
         echo json_encode([
             'success' => false,
-            'error'   => 'Erreur lors de la création de la commande.'
+            'error' => 'Erreur lors de la création de la commande.'
         ]);
         exit;
     }

@@ -1,6 +1,34 @@
 let cart = [];
 let foods = [];
 
+async function initCart() {
+    try {
+        const res = await fetch('api.php?action=get_cart', {
+            credentials: 'include'
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data.cart)) {
+                cart = data.cart;
+                sessionStorage.setItem('cart', JSON.stringify(cart));
+            }
+        }
+    } catch (e) {
+        console.error('Erreur chargement panier DB', e);
+        // fallback to sessionStorage
+        try {
+            const stored = sessionStorage.getItem('cart');
+            cart = stored ? JSON.parse(stored) : [];
+        } catch {
+            cart = [];
+        }
+    }
+
+    updateCart(); // reflect DB cart in sidebar + badge
+}
+
+initCart();
+
 const productsContainer = document.getElementById('products');
 const searchInput = document.getElementById('search-input');
 const categoryFilter = document.getElementById('category-filter');
@@ -12,6 +40,8 @@ const cartTotalDisplay = document.getElementById('cart-total');
 const cartCountDisplay = document.getElementById('cart-count');
 const buyBtn = document.getElementById('buy-btn');
 const sortFilter = document.getElementById('sort-filter'); // add this
+
+
 
 
 // ===================== DISPLAY PRODUCTS =====================
@@ -50,7 +80,6 @@ function displayProducts(items) {
 
 function addToCart(food) {
     const existing = cart.find(item => item.name === food.name);
-
     if (existing) {
         existing.quantity += 1;
     } else {
@@ -61,10 +90,19 @@ function addToCart(food) {
         });
     }
 
+    // add this line:
+    sessionStorage.setItem('cart', JSON.stringify(cart));
+
     updateCart();
     showCart();
-}
 
+    fetch('api.php?action=save_cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ cart })
+    }).catch(() => { });
+}
 function updateCart() {
     cartItemsContainer.innerHTML = '';
 
@@ -92,38 +130,38 @@ function showCart() {
 // ===================== FILTERING =====================
 
 function filterProducts() {
-  const text = searchInput.value.toLowerCase();
-  const category = categoryFilter.value;
-  const selectedAllergies = Array.from(
-    document.querySelectorAll('.allergy-checkbox:checked')
-  ).map(cb => cb.value);
+    const text = searchInput.value.toLowerCase();
+    const category = categoryFilter.value;
+    const selectedAllergies = Array.from(
+        document.querySelectorAll('.allergy-checkbox:checked')
+    ).map(cb => cb.value);
 
-  let filtered = foods.filter(food => {
-    const matchesText = food.name.toLowerCase().includes(text);
-    const matchesCategory = category === 'all' || food.category === category;
-    const matchesAllergy =
-      selectedAllergies.length === 0 ||
-      selectedAllergies.some(a => food.allergy.includes(a));
-    return matchesText && matchesCategory && matchesAllergy;
-  });
+    let filtered = foods.filter(food => {
+        const matchesText = food.name.toLowerCase().includes(text);
+        const matchesCategory = category === 'all' || food.category === category;
+        const matchesAllergy =
+            selectedAllergies.length === 0 ||
+            selectedAllergies.some(a => food.allergy.includes(a));
+        return matchesText && matchesCategory && matchesAllergy;
+    });
 
-  if (sortFilter) {
-    switch (sortFilter.value) {
-      case 'price-asc':
-        filtered = filtered.slice().sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        filtered = filtered.slice().sort((a, b) => b.price - a.price);
-        break;
-      case 'popularity-desc':
-        filtered = filtered
-          .slice()
-          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-        break;
+    if (sortFilter) {
+        switch (sortFilter.value) {
+            case 'price-asc':
+                filtered = filtered.slice().sort((a, b) => a.price - b.price);
+                break;
+            case 'price-desc':
+                filtered = filtered.slice().sort((a, b) => b.price - a.price);
+                break;
+            case 'popularity-desc':
+                filtered = filtered
+                    .slice()
+                    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+                break;
+        }
     }
-  }
 
-  displayProducts(filtered);
+    displayProducts(filtered);
 }
 
 sortFilter.addEventListener("change", filterProducts);
