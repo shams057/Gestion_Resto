@@ -1,0 +1,16 @@
+stocks
+reservation
++bigger db
++add cart to db
+-waiter panel to change order status
++allergens
++sort by 
++review
++add alert on confirm command (no account)
++confirm pass
++order confirmed innerHTML
++show name instead of email in cart
++router login.php
+
+Dashboard:
+vue gen(an/sem/j)
