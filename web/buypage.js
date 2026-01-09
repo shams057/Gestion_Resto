@@ -11,6 +11,8 @@ const cartItemsContainer = document.getElementById('cart-items');
 const cartTotalDisplay = document.getElementById('cart-total');
 const cartCountDisplay = document.getElementById('cart-count');
 const buyBtn = document.getElementById('buy-btn');
+const sortFilter = document.getElementById('sort-filter'); // add this
+
 
 // ===================== DISPLAY PRODUCTS =====================
 
@@ -90,24 +92,42 @@ function showCart() {
 // ===================== FILTERING =====================
 
 function filterProducts() {
-    const text = searchInput.value.toLowerCase();
-    const category = categoryFilter.value;
-    const selectedAllergies = Array.from(
-        document.querySelectorAll('.allergy-checkbox:checked')
-    ).map(cb => cb.value);
+  const text = searchInput.value.toLowerCase();
+  const category = categoryFilter.value;
+  const selectedAllergies = Array.from(
+    document.querySelectorAll('.allergy-checkbox:checked')
+  ).map(cb => cb.value);
 
-    const filtered = foods.filter(food => {
-        const matchesText = food.name.toLowerCase().includes(text);
-        const matchesCategory = category === 'all' || food.category === category;
-        const matchesAllergy =
-            selectedAllergies.length === 0 ||
-            selectedAllergies.some(a => food.allergy.includes(a));
+  let filtered = foods.filter(food => {
+    const matchesText = food.name.toLowerCase().includes(text);
+    const matchesCategory = category === 'all' || food.category === category;
+    const matchesAllergy =
+      selectedAllergies.length === 0 ||
+      selectedAllergies.some(a => food.allergy.includes(a));
+    return matchesText && matchesCategory && matchesAllergy;
+  });
 
-        return matchesText && matchesCategory && matchesAllergy;
-    });
+  if (sortFilter) {
+    switch (sortFilter.value) {
+      case 'price-asc':
+        filtered = filtered.slice().sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filtered = filtered.slice().sort((a, b) => b.price - a.price);
+        break;
+      case 'popularity-desc':
+        filtered = filtered
+          .slice()
+          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+        break;
+    }
+  }
 
-    displayProducts(filtered);
+  displayProducts(filtered);
 }
+
+sortFilter.addEventListener("change", filterProducts);
+
 
 // ===================== SETUP FILTERS =====================
 
@@ -151,12 +171,15 @@ fetch('api.php')
             price: parseFloat(f.prix),
             category: f.category,
             img: f.image_url || 'https://via.placeholder.com/300x200',
-            allergy: Array.isArray(f.allergies) ? f.allergies : []
+            allergy: Array.isArray(f.allergies)
+                ? f.allergies
+                : (f.allergies ? f.allergies.split(',').map(a => a.trim()) : []),
+            popularity: Number(f.popularity) || 0
         }));
-
         setupFilters(foods);
         displayProducts(foods);
     })
+
     .catch(err => console.error('Fetch Error:', err));
 
 // ===================== UI EVENTS =====================

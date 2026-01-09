@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Shop</title>
     <link rel="stylesheet" href="/styleBP.css">
 </head>
+
 <body>
     <!-- NAVBAR -->
     <nav class="navbar">
@@ -20,6 +22,12 @@
         <aside class="sidebar">
             <h3>Filters</h3>
             <input id="search-input" type="text" placeholder="Search food...">
+            <select id="sort-filter">
+                <option value="none">No sorting</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="popularity-desc">Popularity</option>
+            </select>
 
             <select id="category-filter">
                 <option value="all">All Categories</option>
@@ -44,4 +52,5 @@
 
     <script src="/buypage.js"></script>
 </body>
+
 </html>

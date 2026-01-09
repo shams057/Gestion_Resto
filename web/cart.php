@@ -7,7 +7,7 @@ session_start();
     <meta charset="UTF-8">
     <title>Panier - FoodMarket</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/styleBP.css">
+    <link rel="stylesheet" href="styleBP.css">
 </head>
 <body>
 <nav class="navbar">
@@ -118,7 +118,6 @@ function onQtyButtonClick(e) {
     } else if (op === 'dec') {
         cart[index].quantity -= 1;
         if (cart[index].quantity <= 0) {
-            // remove item if quantity goes to 0
             cart.splice(index, 1);
         }
     }
@@ -133,22 +132,38 @@ async function confirmOrder() {
         return;
     }
 
+    // Front check: if not logged in on front, go to signup
     if (!sessionStorage.getItem('auth')) {
-        const backUrl = encodeURIComponent(window.location.pathname);
-        window.location.href = `login?redirect=${backUrl}`;
+        const backUrl = encodeURIComponent('cart');
+        window.location.href = `signup?redirect=${backUrl}`;
         return;
     }
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     try {
-        const res = await fetch('api.php?action=create_order', {
+        const res = await fetch('api?action=create_order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ cart, total })
         });
 
-        const data = await res.json().catch(() => null);
+        const text = await res.text();
+        let data = null;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('Invalid JSON from create_order. Raw:', text);
+            alert('Erreur serveur.');
+            return;
+        }
+
+        if (res.status === 401) {
+            const backUrl = encodeURIComponent('cart');
+            window.location.href = `login?redirect=${backUrl}`;
+            return;
+        }
 
         if (!res.ok || !data || data.success === false) {
             alert((data && data.error) || 'Erreur lors de la création de la commande.');
@@ -172,6 +187,5 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmBtn.addEventListener('click', confirmOrder);
 });
 </script>
-
 </body>
 </html>

@@ -53,11 +53,6 @@
             font-size: 14px;
             margin-top: 8px;
         }
-        .small {
-            font-size: 13px;
-            color: #999;
-            margin-top: 6px;
-        }
         a.link {
             color: #2c3e50;
             text-decoration: none;
@@ -101,7 +96,7 @@
 
     <p class="muted">
         Vous avez déjà un compte ?
-        <a class="link" href="login.php">Connexion</a>
+        <a class="link" href="login">Connexion</a>
     </p>
 </div>
 
@@ -121,21 +116,22 @@ document.getElementById('signupBtn').addEventListener('click', async () => {
     }
 
     try {
-        const res = await fetch('api.php?action=signup', {
+        const res = await fetch('api?action=signup', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({
-                nom,
-                telephone,
-                email,
-                password
-            })
+            body: JSON.stringify({ nom, telephone, email, password })
         });
 
-        const data = await res.json().catch(() => null);
+        const text = await res.text();
+        let data = null;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('Invalid JSON from signup API:', text);
+            err.textContent = 'Erreur serveur.';
+            return;
+        }
 
         if (!res.ok || !data) {
             err.textContent = (data && data.error) || 'Erreur lors de l\'inscription.';
@@ -143,13 +139,13 @@ document.getElementById('signupBtn').addEventListener('click', async () => {
         }
 
         if (data.success) {
-            // after signup, go to buypage.html for client
-            window.location.href = data.redirect || 'buypage.html';
+            // after signup, go to login page
+            window.location.href = 'login';
         } else {
             err.textContent = data.error || 'Erreur lors de l\'inscription.';
         }
     } catch (e) {
-        console.error(e);
+        console.error('Signup fetch error:', e);
         err.textContent = 'Erreur réseau';
     }
 });

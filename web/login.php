@@ -62,15 +62,12 @@ session_start();
 <body>
 <div class="card">
     <h2>Welcome</h2>
-
     <form id="loginForm">
         <input type="email" name="email" placeholder="Email" required>
         <input type="password" name="password" placeholder="Password" required>
         <button type="submit">Login</button>
     </form>
-
     <p id="errorMsg"></p>
-
     <p class="muted">
         Don't have an account?
         <a class="link" href="signup">Create one</a>
@@ -82,12 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('loginForm');
     const errorMsg = document.getElementById('errorMsg');
 
-    if (!form) {
-        console.error('loginForm not found in DOM');
-        return;
-    }
+    if (!form) return;
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
         errorMsg.style.display = 'none';
         errorMsg.textContent = '';
@@ -98,21 +92,23 @@ document.addEventListener('DOMContentLoaded', () => {
             password: formData.get('password')
         };
 
-        fetch('/api.php?action=login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(response => {
-            const contentType = response.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
-                throw new Error('Server did not return JSON');
+        try {
+            const res = await fetch('api?action=login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            const text = await res.text();
+            let data = null;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Invalid JSON from login API. Raw:', text);
+                throw new Error('Invalid JSON');
             }
-            return response.json();
-        })
-        .then(data => {
+
             if (data.status === 'ok') {
                 sessionStorage.setItem('auth', '1');
                 sessionStorage.setItem('role', data.role || 'client');
@@ -121,11 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const redirect = params.get('redirect');
 
                 if (redirect) {
-                    window.location.href = redirect;            // e.g. /web/cart
+                    window.location.href = redirect;
                 } else if (data.role === 'admin') {
-                    window.location.href = 'dashboard';         // /web/dashboard.html
+                    window.location.href = 'dashboard';
                 } else {
-                    window.location.href = 'shop';              // /web/buypage.html
+                    window.location.href = 'shop';
                 }
             } else {
                 const msg = data.message || data.error || 'Incorrect login';
@@ -133,13 +129,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMsg.textContent = msg;
                 errorMsg.style.display = 'block';
             }
-        })
-        .catch(err => {
+        } catch (err) {
             console.error('Fetch Error:', err);
-            alert('Erreur résau');
-            errorMsg.textContent = 'Erreur résau';
+            alert('Erreur réseau');
+            errorMsg.textContent = 'Erreur réseau';
             errorMsg.style.display = 'block';
-        });
+        }
     });
 });
 </script>

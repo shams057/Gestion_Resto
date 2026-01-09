@@ -3,9 +3,9 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 $host    = '127.0.0.1';
-$db      = 'gestion_resto';  // adjust if phpMyAdmin says otherwise
-$user    = 'root';          // adjust
-$pass    = '';              // adjust
+$db      = 'gestion_resto';
+$user    = 'root';
+$pass    = '';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -25,9 +25,6 @@ try {
     exit;
 }
 
-// =======================
-// 3) HELPER
-// =======================
 function json_response($data, int $code = 200): void {
     http_response_code($code);
     echo json_encode($data);
@@ -36,16 +33,9 @@ function json_response($data, int $code = 200): void {
 
 $action = $_GET['action'] ?? null;
 
-// =======================
-// 4) SIGNUP (FROM signup.php)
-// =======================
-//
-// signup.php sends:
-// fetch('api.php?action=signup', {
-//   method: 'POST',
-//   headers: { 'Content-Type': 'application/json' },
-//   body: JSON.stringify({ nom, telephone, email, password })
-// })
+/**
+ * SIGNUP
+ */
 if ($action === 'signup') {
     $input = json_decode(file_get_contents('php://input'), true);
 
@@ -58,7 +48,6 @@ if ($action === 'signup') {
         json_response(['success' => false, 'error' => 'Nom, email et mot de passe requis.'], 400);
     }
 
-    // Check if email already exists
     $stmt = $pdo->prepare('SELECT id FROM clients WHERE email = ? LIMIT 1');
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
@@ -73,29 +62,15 @@ if ($action === 'signup') {
     ');
     $stmt->execute([$nom, $telephone, $email, $hash]);
 
-    $clientId = (int)$pdo->lastInsertId();
-
-    $_SESSION['auth'] = [
-        'id'    => $clientId,
-        'email' => $email,
-        'nom'   => $nom,
-        'role'  => 'client',
-        'type'  => 'client',
-    ];
-    $_SESSION['client_id'] = $clientId;
-
     json_response([
         'success'  => true,
-        'redirect' => 'buypage.html',
+        'redirect' => 'login',
     ]);
 }
 
-// =======================
-// 5) LOGIN (USED BY login.php)
-// =======================
-//
-// login.php sends:
-// fetch('api.php?action=login', { method: 'POST', headers: {...}, body: JSON.stringify({ email, password }) })
+/**
+ * LOGIN
+ */
 if ($action === 'login') {
     $input = json_decode(file_get_contents('php://input'), true);
     $email = trim($input['email'] ?? '');
@@ -105,7 +80,7 @@ if ($action === 'login') {
         json_response(['status' => 'error', 'message' => 'Email ou mot de passe manquant'], 400);
     }
 
-    // Try client login first
+    // Try client login
     $stmt = $pdo->prepare('SELECT id, nom, email, password_hash FROM clients WHERE email = ? LIMIT 1');
     $stmt->execute([$email]);
     $client = $stmt->fetch();
@@ -126,7 +101,7 @@ if ($action === 'login') {
         ]);
     }
 
-    // Then try staff/users login (for dashboard)
+    // Try staff/users
     $stmt = $pdo->prepare('SELECT id, nom, email, role, password_hash FROM users WHERE email = ? LIMIT 1');
     $stmt->execute([$email]);
     $userRow = $stmt->fetch();
@@ -142,21 +117,17 @@ if ($action === 'login') {
 
         json_response([
             'status' => 'ok',
-            'role'   => 'admin', // your JS checks admin vs client
+            'role'   => 'admin',
         ]);
     }
 
     json_response(['status' => 'error', 'message' => 'Incorrect login'], 401);
 }
 
-// =======================
-// 6) CREATE ORDER (USED BY cart.php)
-// =======================
-//
-// cart.php sends:
-// fetch('api.php?action=createorder', { method: 'POST', body: JSON.stringify({ cart, total }) })
+/**
+ * CREATE ORDER
+ */
 if ($action === 'create_order') {
-    // Require a logged-in client
     if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'client') {
         http_response_code(401);
         echo json_encode(['error' => 'Unauthorized']);
@@ -237,9 +208,9 @@ if ($action === 'create_order') {
         $pdo->commit();
 
         echo json_encode([
-            'success'   => true,
+            'success'     => true,
             'commande_id' => $commandeId,
-            'reference' => $ref
+            'reference'   => $ref
         ]);
         exit;
     } catch (PDOException $e) {
@@ -253,66 +224,9 @@ if ($action === 'create_order') {
     }
 }
 
-// =======================
-// 7) GET CART (USED BY buypage.js)
-// =======================
-//
-// buypage.js calls:
-// fetch('api.php?action=getcart')
-if ($action === 'getcart') {
-    if (empty($_SESSION['client_id'])) {
-        json_response(['items' => []]);
-    }
-
-    $clientId = (int)$_SESSION['client_id'];
-
-    // Last en_attente order for this client
-    $stmt = $pdo->prepare('
-        SELECT id
-        FROM commandes
-        WHERE id_client = ? AND statut = "en_attente"
-        ORDER BY date_commande DESC
-        LIMIT 1
-    ');
-    $stmt->execute([$clientId]);
-    $order = $stmt->fetch();
-
-    if (!$order) {
-        json_response(['items' => []]);
-    }
-
-    $orderId = (int)$order['id'];
-
-    $stmt = $pdo->prepare('
-        SELECT lc.id,
-               lc.quantite,
-               lc.prix_unitaire,
-               p.nom AS name
-        FROM ligne_commandes lc
-        JOIN plats p ON p.id = lc.id_plat
-        WHERE lc.id_commande = ?
-    ');
-    $stmt->execute([$orderId]);
-    $rows = $stmt->fetchAll();
-
-    $items = [];
-    foreach ($rows as $r) {
-        $items[] = [
-            'id'       => (int)$r['id'],
-            'name'     => $r['name'],
-            'price'    => (float)$r['prix_unitaire'],
-            'quantity' => (int)$r['quantite'],
-        ];
-    }
-
-    json_response(['items' => $items]);
-}
-
-// =======================
-// 8) DEFAULT: LIST PRODUCTS (USED BY buypage.js)
-// =======================
-//
-// buypage.js does: fetch('api.php') with no action
+/**
+ * DEFAULT: list products
+ */
 if ($action === null) {
     $stmt = $pdo->query('
         SELECT
@@ -329,11 +243,7 @@ if ($action === null) {
     ');
 
     $rows = $stmt->fetchAll();
-
     json_response($rows);
 }
 
-// =======================
-// 9) UNKNOWN ACTION
-// =======================
 json_response(['error' => 'Unknown action'], 400);
