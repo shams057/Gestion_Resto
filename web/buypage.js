@@ -1,6 +1,8 @@
 let cart = [];
 let foods = [];
 
+// ===================== INIT CART (DB + fallback) =====================
+
 async function initCart() {
     try {
         const res = await fetch('api.php?action=get_cart', {
@@ -29,6 +31,8 @@ async function initCart() {
 
 initCart();
 
+// ===================== DOM ELEMENTS =====================
+
 const productsContainer = document.getElementById('products');
 const searchInput = document.getElementById('search-input');
 const categoryFilter = document.getElementById('category-filter');
@@ -39,10 +43,10 @@ const cartItemsContainer = document.getElementById('cart-items');
 const cartTotalDisplay = document.getElementById('cart-total');
 const cartCountDisplay = document.getElementById('cart-count');
 const buyBtn = document.getElementById('buy-btn');
-const sortFilter = document.getElementById('sort-filter'); // add this
-
-
-
+const sortFilter = document.getElementById('sort-filter');
+const modal = document.getElementById('product-modal');
+const modalBody = document.getElementById('product-modal-body');
+const modalClose = document.getElementById('product-modal-close');
 
 // ===================== DISPLAY PRODUCTS =====================
 
@@ -62,15 +66,29 @@ function displayProducts(items) {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-            <img src="${food.img}" alt="${food.name}">
-            <h3>${food.name}</h3>
-            <p>${food.desc}</p>
-            <div class="allergy-tags">${allergyTags}</div>
-            <p><strong>${food.price.toFixed(2)} TND</strong></p>
-            <button>Add to Cart</button>
-        `;
+    <img src="${food.img}" alt="${food.name}">
+    <h3>${food.name}</h3>
+    <p>${food.desc}</p>
+    <div class="allergy-tags">${allergyTags}</div>
+    <p><strong>${food.price.toFixed(2)} TND</strong></p>
+    <button>Add to Cart</button>
+  `;
 
-        card.querySelector('button').addEventListener('click', () => addToCart(food));
+        // click animation + open modal
+        card.addEventListener('click', () => {
+            // restart animation if it's already applied
+            card.classList.remove('card-clicked');
+            void card.offsetWidth; // force reflow so animation restarts
+            card.classList.add('card-clicked');
+
+            openProductModal(food);
+        });
+
+        const addBtn = card.querySelector('button');
+        addBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addToCart(food);
+        });
 
         productsContainer.appendChild(card);
     });
@@ -90,12 +108,13 @@ function addToCart(food) {
         });
     }
 
-    // add this line:
+    // keep browser cart
     sessionStorage.setItem('cart', JSON.stringify(cart));
 
     updateCart();
     showCart();
 
+    // persist cart in DB for logged-in clients
     fetch('api.php?action=save_cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,6 +122,7 @@ function addToCart(food) {
         body: JSON.stringify({ cart })
     }).catch(() => { });
 }
+
 function updateCart() {
     cartItemsContainer.innerHTML = '';
 
@@ -125,6 +145,85 @@ function updateCart() {
 
 function showCart() {
     cartCard.classList.add('visible');
+}
+
+// ===================== MODAL + REVIEW =====================
+
+function openProductModal(food) {
+    const allergyTags = food.allergy.length
+        ? food.allergy.map(a => `<span class="tag">${a}</span>`).join(' ')
+        : '';
+
+    modalBody.innerHTML = `
+    <div class="card">
+      <img src="${food.img}" alt="${food.name}">
+      <h3>${food.name}</h3>
+      <p>${food.desc}</p>
+      <div class="allergy-tags">${allergyTags}</div>
+      <p><strong>${food.price.toFixed(2)} TND</strong></p>
+      <button id="modal-add-cart">Add to Cart</button>
+
+      <hr style="margin:15px 0;">
+
+      <div>
+        <h4>Laisser un avis</h4>
+        <label for="review-rating">Note (1-5, optionnelle)</label><br>
+        <select id="review-rating">
+          <option value="">Aucune</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+
+        <br><br>
+        <textarea id="review-comment" rows="3" style="width:100%;" placeholder="Écrivez votre avis..."></textarea>
+        <br>
+        <button id="review-submit">Envoyer l'avis</button>
+      </div>
+    </div>
+  `;
+
+    modal.classList.add('open');
+
+    document.getElementById('modal-add-cart')
+        .addEventListener('click', () => addToCart(food));
+
+    document.getElementById('review-submit')
+        .addEventListener('click', async () => {
+            const ratingVal = document.getElementById('review-rating').value;
+            const comment = document.getElementById('review-comment').value.trim();
+            const rating = ratingVal ? parseInt(ratingVal, 10) : null;
+
+            if (!comment) {
+                alert('Veuillez écrire un avis.');
+                return;
+            }
+
+            try {
+                const res = await fetch('api.php?action=save_review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        id_plat: food.id,
+                        rating,
+                        comment
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    alert(data.error || "Erreur lors de l'envoi de l'avis.");
+                    return;
+                }
+                alert('Merci pour votre avis !');
+                modal.classList.remove('open');
+            } catch (e) {
+                console.error('Review error', e);
+                alert('Erreur réseau lors de lenvoi de lavis.');
+            }
+        });
 }
 
 // ===================== FILTERING =====================
@@ -164,8 +263,9 @@ function filterProducts() {
     displayProducts(filtered);
 }
 
-sortFilter.addEventListener("change", filterProducts);
-
+if (sortFilter) {
+    sortFilter.addEventListener('change', filterProducts);
+}
 
 // ===================== SETUP FILTERS =====================
 
@@ -187,9 +287,9 @@ function setupFilters(data) {
         const id = `allergy-${a}`;
         const div = document.createElement('div');
         div.innerHTML = `
-            <input type="checkbox" class="allergy-checkbox" value="${a}" id="${id}">
-            <label for="${id}">${a}</label>
-        `;
+      <input type="checkbox" class="allergy-checkbox" value="${a}" id="${id}">
+      <label for="${id}">${a}</label>
+    `;
         allergyContainer.appendChild(div);
     });
 
@@ -204,6 +304,7 @@ fetch('api.php')
     .then(res => res.json())
     .then(data => {
         foods = data.map(f => ({
+            id: f.id,
             name: f.nom,
             desc: f.description || '',
             price: parseFloat(f.prix),
@@ -214,10 +315,10 @@ fetch('api.php')
                 : (f.allergies ? f.allergies.split(',').map(a => a.trim()) : []),
             popularity: Number(f.popularity) || 0
         }));
+
         setupFilters(foods);
         displayProducts(foods);
     })
-
     .catch(err => console.error('Fetch Error:', err));
 
 // ===================== UI EVENTS =====================
@@ -239,3 +340,19 @@ buyBtn.addEventListener('click', () => {
     sessionStorage.setItem('cart', JSON.stringify(cart));
     window.location.href = 'cart'; // /web/cart.php via router
 });
+
+// Modal close handlers
+
+if (modalClose) {
+    modalClose.addEventListener('click', () => {
+        modal.classList.remove('open');
+    });
+}
+
+if (modal) {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('open');
+        }
+    });
+}

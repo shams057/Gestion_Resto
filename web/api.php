@@ -218,6 +218,39 @@ if ($action === 'get_cart') {
     json_response(['cart' => $cart]);
 }
 
+/**
+ * SAVE REVIEW
+ */
+if ($action === 'save_review') {
+    if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'client') {
+        json_response(['success' => false, 'error' => 'Unauthorized'], 401);
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $platId = (int) ($data['id_plat'] ?? 0);
+    $rating = isset($data['rating']) ? (int) $data['rating'] : null;
+    $comment = trim($data['comment'] ?? '');
+
+    if ($platId <= 0 || $comment === '') {
+        json_response(['success' => false, 'error' => 'Commentaire requis.'], 400);
+    }
+
+    $clientId = (int) $_SESSION['auth']['id'];
+
+    $stmt = $pdo->prepare('
+        INSERT INTO reviews (id_client, id_plat, rating, comment)
+        VALUES (:cid, :pid, :rating, :comment)
+    ');
+    $stmt->execute([
+        ':cid' => $clientId,
+        ':pid' => $platId,
+        ':rating' => $rating,
+        ':comment' => $comment,
+    ]);
+
+    json_response(['success' => true]);
+}
+
 
 /**
  * CREATE ORDER

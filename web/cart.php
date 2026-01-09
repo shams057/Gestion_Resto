@@ -19,7 +19,7 @@ session_start();
                 Retour à la boutique
             </a>
             <?php if (!empty($_SESSION['auth'])): ?>
-                <span><?php echo htmlspecialchars($_SESSION['auth']['email']); ?></span>
+                <span><?php echo htmlspecialchars($_SESSION['auth']['nom']); ?></span>
                 <a href="logout" style="color:white;margin-left:10px;text-decoration:none">
                     Déconnexion
                 </a>
@@ -47,9 +47,12 @@ session_start();
                 Confirmer la commande
             </button>
         </div>
+        <div id="order-message" style="display:none; margin-top:20px;"></div>
+    </div>
     </div>
 
     <script>
+        const messageBox = document.getElementById('order-message');
         const listEl = document.getElementById('cart-summary-list');
         const totalEl = document.getElementById('cart-summary-total');
         const confirmBtn = document.getElementById('confirm-order-btn');
@@ -181,12 +184,36 @@ session_start();
                     alert((data && data.error) || 'Erreur lors de la création de la commande.');
                     return;
                 }
-
-                alert('Commande confirmée ! Référence: ' + data.reference);
-
                 cart = [];
                 sessionStorage.removeItem('cart');
-                window.location.href = 'shop';
+
+                messageBox.innerHTML = `
+  <div style="
+    background:#e8f5e9;
+    border:1px solid #2ecc71;
+    padding:16px;
+    border-radius:8px;
+    max-width:600px;
+  ">
+    <h3 style="margin-top:0;">Commande confirmée !</h3>
+    <p>Référence: <strong>${data.reference}</strong></p>
+    <button id="back-to-shop-btn" style="margin-top:10px;">
+      Retourner à la boutique
+    </button>
+  </div>
+`;
+                messageBox.style.display = 'block';
+
+                // keep the summary visually empty
+                renderCartSummary();
+
+                // attach click handler
+                const backBtn = document.getElementById('back-to-shop-btn');
+                if (backBtn) {
+                    backBtn.addEventListener('click', () => {
+                        window.location.href = 'shop';
+                    });
+                }
             } catch (e) {
                 console.error('Order error', e);
                 alert('Erreur réseau lors de la commande.');

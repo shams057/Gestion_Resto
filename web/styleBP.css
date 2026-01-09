@@ -101,7 +101,7 @@ body {
     display: flex;
     flex-direction: column;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    transition: 0.2s;
+    transition: transform 0.15s ease-out;
 }
 
 .card img {
@@ -127,9 +127,23 @@ body {
     background: #27ae60;
 }
 
-.card:hover {
+/* Hover effect only on the small grid cards */
+.products .card:hover {
     transform: scale(1.02);
 }
+
+/* Click animation for cards */
+.card-clicked {
+    animation: cardClickZoom 0.18s ease-out;
+    animation-fill-mode: none;
+}
+
+@keyframes cardClickZoom {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
 
 /* CART CARD */
 .cart-card {
@@ -192,7 +206,54 @@ body {
     margin-right: 5px;
     display: inline-block;
 }
+
 #cart-summary-list .qty-btn {
     margin-left: 4px;
     padding: 2px 6px;
+}
+
+/* MODAL FOR BIG CARD */
+.product-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+}
+
+.product-modal.open {
+    display: flex;
+}
+
+.product-modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    max-width: 600px;
+    width: 90%;
+    padding: 20px;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+.product-modal.open .product-modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.product-modal-close {
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    float: right;
+    cursor: pointer;
+}
+
+/* Big card inside modal: same base style, but no extra shadow from .card */
+.product-modal .card {
+    box-shadow: none;
+    margin: 0;
 }
