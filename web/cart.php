@@ -9,27 +9,33 @@ session_start();
     <title>Panier - FoodMarket</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styleBP.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="logo">FoodMarket</div>
-        <div class="button">
-            <a href="shop" style="color:white;margin-right:10px;text-decoration:none">
-                Retour à la boutique
-            </a>
-            <?php if (!empty($_SESSION['auth'])): ?>
-                <span><?php echo htmlspecialchars($_SESSION['auth']['nom']); ?></span>
-                <a href="logout" style="color:white;margin-left:10px;text-decoration:none">
-                    Déconnexion
-                </a>
-            <?php else: ?>
-                <a href="login" style="color:white;margin-left:10px;text-decoration:none">
-                    Connexion
-                </a>
-            <?php endif; ?>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="logo">FoodMarket</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button id="theme-toggle" class="theme-toggle">🌙</button>
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+                <?php if (!empty($_SESSION['auth'])): ?>
+                    <span style="font-weight: 500;"><?php echo htmlspecialchars($_SESSION['auth']['nom']); ?></span>
+                    <a href="logout"
+                        style="color: white; padding: 8px 16px; background: var(--primary); border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;">Déconnexion</a>
+                <?php else: ?>
+                    <a href="login"
+                        style="color: var(--text-primary); text-decoration: none; font-weight: 500;">Connexion</a>
+                <?php endif; ?>
+                <a href="shop"
+                    style="color: var(--text-primary); text-decoration: none; padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 6px;">Retour
+                    boutique</a>
+            </div>
         </div>
     </nav>
+
 
     <div class="container" style="padding:20px; flex-direction:column;">
         <h2>Confirmation de commande</h2>
@@ -52,6 +58,22 @@ session_start();
     </div>
 
     <script>
+        function initThemeToggle() {
+            const themeToggle = document.getElementById("theme-toggle");
+            const html = document.documentElement;
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                html.classList.add("dark-mode");
+                themeToggle.textContent = "☀️";
+            }
+            themeToggle.addEventListener("click", () => {
+                html.classList.toggle("dark-mode");
+                const isDark = html.classList.contains("dark-mode");
+                localStorage.setItem("theme", isDark ? "dark" : "light");
+                themeToggle.textContent = isDark ? "☀️" : "🌙";
+            });
+        }
+
         const messageBox = document.getElementById('order-message');
         const listEl = document.getElementById('cart-summary-list');
         const totalEl = document.getElementById('cart-summary-total');
@@ -221,10 +243,12 @@ session_start();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            initThemeToggle(); // Add this line
             loadCartFromSession();
             renderCartSummary();
             confirmBtn.addEventListener('click', confirmOrder);
         });
+
     </script>
 </body>
 

@@ -4,59 +4,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Shop</title>
+    <title>Gresto - Food Marketplace</title>
     <link rel="stylesheet" href="/styleBP.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- NAVBAR -->
+    <!-- Modern navbar with refined styling -->
     <nav class="navbar">
-        <div class="logo">FoodMarket</div>
-        <button id="cart-btn">
-            Cart <span id="cart-count">0</span>
-        </button>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button id="burger-menu" class="burger-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="logo">Gresto</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <!-- Added theme toggle button -->
+            <button id="theme-toggle" class="theme-toggle">🌙</button>
+            <button id="cart-btn" class="cart-btn">
+                <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                Cart <span id="cart-count" class="cart-badge">0</span>
+            </button>
+        </div>
     </nav>
 
     <div class="container">
-        <!-- SIDEBAR -->
+        <!-- Modernized sidebar with clean inputs -->
         <aside class="sidebar">
-            <h3>Filters</h3>
-            <input id="search-input" type="text" placeholder="Search food...">
-            <select id="sort-filter">
-                <option value="none">No sorting</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="popularity-desc">Popularity</option>
-            </select>
+            <div class="sidebar-header">
+                <h3>Filters</h3>
+            </div>
+            <div class="filter-group">
+                <input id="search-input" type="text" placeholder="Search food..." class="filter-input">
+            </div>
 
-            <select id="category-filter">
-                <option value="all">All Categories</option>
-            </select>
+            <div class="filter-group">
+                <label class="filter-label">Sort by</label>
+                <select id="sort-filter" class="filter-select">
+                    <option value="none">No sorting</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="popularity-desc">Popularity</option>
+                </select>
+            </div>
 
-            <h4>Allergies</h4>
-            <div id="allergy-filters"></div>
+            <div class="filter-group">
+                <label class="filter-label">Category</label>
+                <select id="category-filter" class="filter-select">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Allergies</label>
+                <div id="allergy-filters" class="allergy-list"></div>
+            </div>
         </aside>
 
-        <!-- PRODUCTS GRID -->
-        <!-- IMPORTANT: apply .products class for CSS grid -->
+        <!-- Products grid with refined card layout -->
         <main id="products" class="products"></main>
     </div>
 
-    <!-- CART CARD -->
+    <!-- Modern cart card with improved UX -->
     <div id="cart-card" class="cart-card">
-        <h3>Shopping Cart</h3>
-        <ul id="cart-items"></ul>
-        <p>Total <strong id="cart-total">0.00 TND</strong></p>
-        <button id="buy-btn">Buy Now</button>
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="cart-close" onclick="document.getElementById('cart-card').classList.remove('visible')">×</button>
+        </div>
+        <ul id="cart-items" class="cart-items"></ul>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total</span>
+                <strong id="cart-total">0.00 TND</strong>
+            </div>
+            <button id="buy-btn" class="btn-primary">Proceed to Checkout</button>
+        </div>
     </div>
+
     <div id="product-modal" class="product-modal">
         <div class="product-modal-content">
             <button id="product-modal-close" class="product-modal-close">&times;</button>
             <div id="product-modal-body"></div>
         </div>
     </div>
-
-    <script src="buypage.js"></script>
 
     <script src="/buypage.js"></script>
 </body>

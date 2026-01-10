@@ -1,0 +1,4 @@
+sudo /opt/lampp/lampp start
+sudo systemctl stop apache2
+sudo /opt/lampp/lampp restart
+php -S 192.168.1.114:8000 -t web web/router.php
