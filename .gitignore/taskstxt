@@ -17,7 +17,7 @@ vue gen(an/sem/j)
 
 
 
-smaller filter area
++smaller filter area
 save cart when no user
 page for chef with list of orders
 other categories (healthy, etc...)
@@ -27,9 +27,10 @@ open via scan (qrcode)
 session disconnect after 2h
 low stars alerts
 login via google/facebook etc...
-mobile version
++mobile version
 % for text in cart 
-Add burger menu
++Add burger menu
 % margin top cart view
-redesign cart navbar
++redesign cart navbar
+fix navbar dashboard
 
