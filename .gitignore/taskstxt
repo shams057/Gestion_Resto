@@ -11,26 +11,38 @@ waiter panel to change order status
 +order confirmed innerHTML
 +show name instead of email in cart
 +router login.php
++ open via scan (qrcode)
++Add burger menu
++redesign cart navbar
++smaller filter area
++mobile version
 
 Dashboard:
 vue gen(an/sem/j)
 
 
-
-+smaller filter area
-save cart when no user
+- relocate review to email after 1h
+- colored allergens
+- save cart when no user
+- session disconnect after 2h
+- low stars alerts
+- login via google/facebook etc...
+% for text in cart 
+% margin top cart view
+fix navbar dashboard
+fix navbar mobile bp
 page for chef with list of orders
 other categories (healthy, etc...)
-after passing order get review button after 1h send an email (after order set to complete or delivered)
 keep local change address for easier link
-open via scan (qrcode)
-session disconnect after 2h
-low stars alerts
-login via google/facebook etc...
-+mobile version
-% for text in cart 
-+Add burger menu
-% margin top cart view
-+redesign cart navbar
-fix navbar dashboard
 
+
+aft commit:
+dark mode float button !nav
+fix dark confirm text cart
+alrg filter + zero sugar + keto
+add categories
+css vider 
+css return boutique
+check cart save
+css jmy dashboard + wide avis
+fix fetch dashboard

@@ -132,3 +132,56 @@ fetch("api_dashboard.php")
   .catch((err) => {
     console.error("Dashboard fetch error:", err)
   })
+// Add to your existing dashboard.js
+
+let currentRange = 'month'
+
+async function loadLowStarAlerts() {
+  try {
+    const res = await fetch('api_dashboard.php?action=getLowStarAlerts')
+    const data = await res.json()
+    const tbody = document.getElementById('low-stars-body')
+    if (!tbody) return
+
+    tbody.innerHTML = ''
+    data.alerts.forEach(a => {
+      const tr = document.createElement('tr')
+      tr.className = 'low-star-row'
+      tr.innerHTML = `
+        <td>${new Date(a.created_at).toLocaleString()}</td>
+        <td>${a.client_name}</td>
+        <td>${a.plat_name}</td>
+        <td><span class="low-star-badge">${a.rating}★</span></td>
+        <td>${a.comment || ''}</td>
+      `
+      tbody.appendChild(tr)
+    })
+
+    const statAlerts = document.getElementById('stat-alerts')
+    if (statAlerts) statAlerts.textContent = data.alerts.length
+  } catch (e) {
+    console.error('Low star alerts error', e)
+  }
+}
+
+async function loadDashboardData() {
+  const res = await fetch(`api_dashboard.php?action=getStats&range=${currentRange}`)
+  const data = await res.json()
+  
+  document.getElementById('stat-revenue').textContent = data.revenue.toFixed(2) + ' TND'
+  document.getElementById('stat-orders').textContent = data.orders
+  document.getElementById('stat-alerts').textContent = data.alerts
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const rangeSelect = document.getElementById('dashboard-range')
+  if (rangeSelect) {
+    rangeSelect.addEventListener('change', (e) => {
+      currentRange = e.target.value
+      loadDashboardData()
+      loadLowStarAlerts()
+    })
+  }
+  loadDashboardData()
+  loadLowStarAlerts()
+})

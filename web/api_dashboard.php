@@ -1,148 +1,84 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-session_start();
+// Session timeout check (same as api.php)
+$timeout = 2 * 60 * 60;
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > $timeout)) {
+    session_unset();
+    session_destroy();
+    session_start();
+    $_SESSION['timed_out'] = true;
+}
+$_SESSION['LAST_ACTIVITY'] = time();
 
-if (empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'admin') {
+if (!empty($_SESSION['timed_out']) || empty($_SESSION['auth']) || ($_SESSION['auth']['role'] ?? '') !== 'admin') {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
 }
 
-$DB_HOST = '127.0.0.1';
-$DB_NAME = 'gestion_resto';
-$DB_USER = 'root';
-$DB_PASS = '';
-$DB_CHAR = 'utf8mb4';
-
+// Database connection (same as api.php)
+$host = '127.0.0.1';
+$db = 'gestion_resto';
+$dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
 try {
-    $pdo = new PDO(
-        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset={$DB_CHAR}",
-        $DB_USER,
-        $DB_PASS,
-        [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]
-    );
-} catch (PDOException $e) {
+    $pdo = new PDO($dsn, 'root', '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'DB connection failed', 'details' => $e->getMessage()]);
+    echo json_encode(['error' => 'DB connection error']);
     exit;
 }
 
-try {
-    $totalRevenue = (float)$pdo->query("SELECT COALESCE(SUM(total),0) FROM commandes")->fetchColumn();
-    $ordersCount  = (int)$pdo->query("SELECT COUNT(*) FROM commandes")->fetchColumn();
-    $alertsCount  = (int)$pdo->query("SELECT COUNT(*) FROM logs")->fetchColumn();
+$action = $_GET['action'] ?? null;
+$range = $_GET['range'] ?? 'month';
 
-    $ordersStmt = $pdo->query("
-        SELECT DATE(date_commande) AS date,
-               COUNT(*) AS nb_commandes,
-               COALESCE(SUM(total), 0) AS total_revenu
-        FROM commandes
-        GROUP BY DATE(date_commande)
-        ORDER BY DATE(date_commande) DESC
-        LIMIT 7
+$where = '1=1';
+$params = [];
+if ($range === 'day') {
+    $where = 'DATE(created_at) = CURDATE()';
+} elseif ($range === 'month') {
+    $where = 'YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())';
+} elseif ($range === 'year') {
+    $where = 'YEAR(created_at) = YEAR(CURDATE())';
+}
+
+if ($action === 'getStats') {
+    $stmt = $pdo->prepare("
+        SELECT COALESCE(SUM(total),0) AS revenue, COUNT(*) AS orders
+        FROM commandes WHERE $where
     ");
-    $ordersPerDay = $ordersStmt->fetchAll();
+    $stmt->execute($params);
+    $row = $stmt->fetch();
 
-    $popularStmt = $pdo->query("
-        SELECT p.id,
-               p.nom,
-               COALESCE(SUM(l.quantite), 0) AS quantite_vendue
-        FROM plats p
-        LEFT JOIN ligne_commandes l ON p.id = l.id_plat
-        GROUP BY p.id, p.nom
-        ORDER BY quantite_vendue DESC
-        LIMIT 10
+    $alertsStmt = $pdo->prepare("
+        SELECT COUNT(*) FROM reviews WHERE rating <= 3 AND $where
     ");
-    $popular = $popularStmt->fetchAll();
-
-    $recentOrdersStmt = $pdo->query("
-        SELECT co.id,
-               co.date_commande,
-               co.total,
-               co.id_client,
-               co.id_serveur
-        FROM commandes co
-        ORDER BY co.date_commande DESC
-        LIMIT 10
-    ");
-    $recentOrdersRaw = $recentOrdersStmt->fetchAll();
-
-    $recent = [];
-
-    foreach ($recentOrdersRaw as $ro) {
-        $client = 'Client inconnu';
-        if (!empty($ro['id_client'])) {
-            $c = $pdo->prepare("SELECT nom FROM clients WHERE id = :id LIMIT 1");
-            $c->execute(['id' => $ro['id_client']]);
-            $clientName = $c->fetchColumn();
-            if ($clientName) {
-                $client = $clientName;
-            }
-        }
-
-        $waiter = '';
-        if (!empty($ro['id_serveur'])) {
-            $s = $pdo->prepare("SELECT nom FROM users WHERE id = :id LIMIT 1");
-            $s->execute(['id' => $ro['id_serveur']]);
-            $wName = $s->fetchColumn();
-            if ($wName) {
-                $waiter = $wName;
-            }
-        }
-
-        $lc = $pdo->prepare("
-            SELECT l.quantite,
-                   l.prix_unitaire,
-                   p.nom AS produit
-            FROM ligne_commandes l
-            LEFT JOIN plats p ON p.id = l.id_plat
-            WHERE l.id_commande = :cid
-        ");
-        $lc->execute(['cid' => $ro['id']]);
-        $lines = $lc->fetchAll();
-
-        $itemsGrouped = [];
-        foreach ($lines as $ln) {
-            $prod = $ln['produit'] ?? 'Plat';
-            $qty  = (int)$ln['quantite'];
-
-            if (!isset($itemsGrouped[$prod])) {
-                $itemsGrouped[$prod] = 0;
-            }
-            $itemsGrouped[$prod] += $qty;
-        }
-
-        $itemsFormatted = [];
-        foreach ($itemsGrouped as $prod => $qty) {
-            $itemsFormatted[] = $prod.' x'.$qty;
-        }
-
-        $recent[] = [
-            'id'            => $ro['id'],
-            'date_commande' => $ro['date_commande'],
-            'client_nom'    => $client,
-            'serveur_nom'   => $waiter,
-            'items'         => $itemsFormatted,
-            'total'         => $ro['total'],
-        ];
-    }
+    $alertsStmt->execute($params);
+    $alerts = $alertsStmt->fetchColumn();
 
     echo json_encode([
-        'stats' => [
-            'total_revenue' => $totalRevenue,
-            'orders'        => $ordersCount,
-            'alerts'        => $alertsCount,
-            'server_status' => 'En ligne',
-        ],
-        'orders'        => $ordersPerDay,
-        'popular'       => $popular,
-        'recent_orders' => $recent,
-    ], JSON_UNESCAPED_UNICODE);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+        'revenue' => (float)$row['revenue'],
+        'orders' => (int)$row['orders'],
+        'alerts' => (int)$alerts
+    ]);
+    exit;
 }
+
+if ($action === 'getLowStarAlerts') {
+    $stmt = $pdo->prepare("
+        SELECT r.id, r.rating, r.comment, r.created_at,
+               c.nom AS client_name, p.nom AS plat_name
+        FROM reviews r
+        JOIN clients c ON c.id = r.id_client
+        JOIN plats p ON p.id = r.id_plat
+        WHERE r.rating <= 3
+        ORDER BY r.created_at DESC LIMIT 50
+    ");
+    $stmt->execute();
+    echo json_encode(['alerts' => $stmt->fetchAll()]);
+    exit;
+}
+
+echo json_encode(['error' => 'Unknown action']);
+?>

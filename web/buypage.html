@@ -68,14 +68,15 @@
         </aside>
 
         <!-- Products grid with refined card layout -->
-        <main id="products" class="products"></main>
+        <main id="products-container" class="products"></main>
     </div>
 
     <!-- Modern cart card with improved UX -->
     <div id="cart-card" class="cart-card">
         <div class="cart-header">
             <h3>Shopping Cart</h3>
-            <button class="cart-close" onclick="document.getElementById('cart-card').classList.remove('visible')">×</button>
+            <button class="cart-close"
+                onclick="document.getElementById('cart-card').classList.remove('visible')">×</button>
         </div>
         <ul id="cart-items" class="cart-items"></ul>
         <div class="cart-footer">
@@ -83,16 +84,34 @@
                 <span>Total</span>
                 <strong id="cart-total">0.00 TND</strong>
             </div>
-            <button id="buy-btn" class="btn-primary">Proceed to Checkout</button>
+            <button class="btn-secondary" onclick="clearCart()">Vider</button>
+            <button id="buy-btn" class="btn-primary" onclick="checkout()">Commander</button>
         </div>
+
     </div>
 
     <div id="product-modal" class="product-modal">
         <div class="product-modal-content">
             <button id="product-modal-close" class="product-modal-close">&times;</button>
-            <div id="product-modal-body"></div>
+            <div id="modal-body"></div>
         </div>
     </div>
+    <script>
+        // Add these 2 functions for your buttons
+        function clearCart() {
+            cart = [];
+            saveCartToStorage();
+            updateCart();
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Panier vide');
+                return;
+            }
+            window.location.href = 'checkout.html?total=' + cartTotalDisplay.textContent;
+        }
+    </script>
 
     <script src="/buypage.js"></script>
 </body>

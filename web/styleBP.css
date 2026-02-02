@@ -518,3 +518,43 @@ html.dark-mode .product-modal-content {
     margin: 8px;
   }
 }
+
+/* Allergy tags */
+.allergy-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.tag {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.tag.gluten { background: #17890a; }
+.tag.lactose { background: #1c4f97; }
+.tag.nut { background: #d47516; }
+
+/* Basic layout */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.cart-card { position: fixed; right: 20px; top: 100px; width: 350px; background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; }
+
+.cart-card {
+    position: fixed;
+    right: -400px; /* Hidden by default */
+    top: 80px;
+    width: 350px;
+    height: calc(100vh - 100px);
+    transition: right 0.3s ease;
+    z-index: 1000;
+}
+
+.cart-card.visible {
+    right: 20px; /* Slide in */
+}

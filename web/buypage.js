@@ -1,389 +1,270 @@
-let cart = []
-let foods = []
+// DOM Elements - ADD THESE AT TOP
+const productsContainer = document.getElementById('products-container');
+const cartItemsContainer = document.getElementById('cart-items');
+const cartTotalDisplay = document.getElementById('cart-total');
+const cartCountDisplay = document.getElementById('cart-count');
+const cartCard = document.getElementById('cart-card');
+const modal = document.getElementById('product-modal');
+const modalBody = document.getElementById('modal-body');
 
-// ===================== INIT CART (DB + fallback) =====================
+let cart = [];
+let foods = [];
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', function() {
+    initCart();
+    loadProducts();
+    initThemeToggle();
+    initBurgerMenu();
+});
+
+async function loadProducts() {
+    try {
+        const res = await fetch('api.php');
+        const data = await res.json();
+        console.log('PRODUCTS FROM API:', data);
+        foods = data;
+        displayProducts(foods);
+    } catch(e) {
+        console.error('API ERROR:', e);
+        productsContainer.innerHTML = '<p>Erreur chargement produits</p>';
+    }
+}
+
+// ===================== CART =====================
+// Cart toggle
+document.getElementById('cart-btn')?.addEventListener('click', () => {
+    cartCard.classList.toggle('visible');
+});
+
+// Close cart with X button
+document.querySelector('.cart-close')?.addEventListener('click', () => {
+    cartCard.classList.remove('visible');
+});
 
 async function initCart() {
-  try {
-    const res = await fetch("api.php?action=get_cart", {
-      credentials: "include",
-    })
-    if (res.ok) {
-      const data = await res.json()
-      if (data && Array.isArray(data.cart)) {
-        cart = data.cart
-        sessionStorage.setItem("cart", JSON.stringify(cart))
-      }
-    }
-  } catch (e) {
-    console.error("Erreur chargement panier DB", e)
-    // fallback to sessionStorage
     try {
-      const stored = sessionStorage.getItem("cart")
-      cart = stored ? JSON.parse(stored) : []
+        const stored = localStorage.getItem('gresto_cart') || sessionStorage.getItem("cart");
+        if (stored) {
+            cart = JSON.parse(stored);
+        }
     } catch {
-      cart = []
+        cart = [];
     }
-  }
 
-  updateCart() // reflect DB cart in sidebar + badge
+    if (sessionStorage.getItem('auth')) {
+        await syncCartAfterLogin();
+    }
+
+    updateCart();
 }
 
-// ===================== INIT THEME TOGGLE =====================
+async function syncCartAfterLogin() {
+    const localCart = localStorage.getItem('gresto_cart');
+    if (!localCart) return;
 
-function initThemeToggle() {
-  const themeToggle = document.getElementById("theme-toggle")
-  const html = document.documentElement
-
-  // Check localStorage for saved theme
-  const savedTheme = localStorage.getItem("theme") || "light"
-  if (savedTheme === "dark") {
-    html.classList.add("dark-mode")
-    themeToggle.textContent = "☀️"
-  }
-
-  themeToggle.addEventListener("click", () => {
-    html.classList.toggle("dark-mode")
-    const isDark = html.classList.contains("dark-mode")
-    localStorage.setItem("theme", isDark ? "dark" : "light")
-    themeToggle.textContent = isDark ? "☀️" : "🌙"
-  })
+    try {
+        const res = await fetch("api.php?action=get_cart", { credentials: "include" });
+        const data = await res.json();
+        if (data.cart && data.cart.length > 0) {
+            if (confirm('Fusionner panier précédent ?')) {
+                const serverCart = data.cart;
+                const localItems = JSON.parse(localCart);
+                localItems.forEach(localItem => {
+                    const existing = cart.find(item => item.name === localItem.name);
+                    if (existing) {
+                        existing.quantity += localItem.quantity;
+                    } else {
+                        cart.push(localItem);
+                    }
+                });
+                localStorage.removeItem('gresto_cart');
+                await saveCartToServer();
+            } else {
+                localStorage.removeItem('gresto_cart');
+            }
+        }
+    } catch (e) {
+        console.error('Sync cart error', e);
+    }
 }
 
-// ===================== INIT BURGER MENU =====================
-
-function initBurgerMenu() {
-  const burgerMenu = document.getElementById("burger-menu")
-  const sidebar = document.querySelector(".sidebar")
-
-  burgerMenu.addEventListener("click", () => {
-    burgerMenu.classList.toggle("active")
-    sidebar.classList.toggle("open")
-  })
-
-  // Close menu when clicking on a filter
-  sidebar.querySelectorAll("input, select").forEach((el) => {
-    el.addEventListener("change", () => {
-      burgerMenu.classList.remove("active")
-      sidebar.classList.remove("open")
-    })
-  })
+async function saveCartToServer() {
+    try {
+        await fetch("api.php?action=save_cart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ cart }),
+        });
+    } catch (e) {}
 }
-
-// ===================== DOM ELEMENTS =====================
-
-const productsContainer = document.getElementById("products")
-const searchInput = document.getElementById("search-input")
-const categoryFilter = document.getElementById("category-filter")
-const allergyContainer = document.getElementById("allergy-filters")
-const cartBtn = document.getElementById("cart-btn")
-const cartCard = document.getElementById("cart-card")
-const cartItemsContainer = document.getElementById("cart-items")
-const cartTotalDisplay = document.getElementById("cart-total")
-const cartCountDisplay = document.getElementById("cart-count")
-const buyBtn = document.getElementById("buy-btn")
-const sortFilter = document.getElementById("sort-filter")
-const modal = document.getElementById("product-modal")
-const modalBody = document.getElementById("product-modal-body")
-const modalClose = document.getElementById("product-modal-close")
-
-// ===================== DISPLAY PRODUCTS =====================
-
-function displayProducts(items) {
-  productsContainer.innerHTML = ""
-
-  if (!items || items.length === 0) {
-    productsContainer.innerHTML = "<p>No items found.</p>"
-    return
-  }
-
-  items.forEach((food) => {
-    const allergyTags = food.allergy.length ? food.allergy.map((a) => `<span class="tag">${a}</span>`).join(" ") : ""
-
-    const card = document.createElement("div")
-    card.className = "card"
-    card.innerHTML = `
-    <img src="${food.img}" alt="${food.name}">
-    <h3>${food.name}</h3>
-    <p>${food.desc}</p>
-    <div class="allergy-tags">${allergyTags}</div>
-    <p><strong>${food.price.toFixed(2)} TND</strong></p>
-    <button>Add to Cart</button>
-  `
-
-    // click animation + open modal
-    card.addEventListener("click", () => {
-      // restart animation if it's already applied
-      card.classList.remove("card-clicked")
-      void card.offsetWidth // force reflow so animation restarts
-      card.classList.add("card-clicked")
-
-      openProductModal(food)
-    })
-
-    const addBtn = card.querySelector("button")
-    addBtn.addEventListener("click", (e) => {
-      e.stopPropagation()
-      addToCart(food)
-    })
-
-    productsContainer.appendChild(card)
-  })
-}
-
-// ===================== CART FUNCTIONS =====================
 
 function addToCart(food) {
-  const existing = cart.find((item) => item.name === food.name)
-  if (existing) {
-    existing.quantity += 1
-  } else {
-    cart.push({
-      name: food.name,
-      price: food.price,
-      quantity: 1,
-    })
-  }
+    const existing = cart.find((item) => item.name === food.name);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({
+            name: food.name,
+            price: food.price,
+            quantity: 1,
+        });
+    }
 
-  // keep browser cart
-  sessionStorage.setItem("cart", JSON.stringify(cart))
+    saveCartToStorage();
+    if (sessionStorage.getItem('auth')) saveCartToServer();
+    updateCart();
+    showCart();
+}
 
-  updateCart()
-  showCart()
-
-  // persist cart in DB for logged-in clients
-  fetch("api.php?action=save_cart", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ cart }),
-  }).catch(() => {})
+function saveCartToStorage() {
+    localStorage.setItem('gresto_cart', JSON.stringify(cart));
+    sessionStorage.setItem("cart", JSON.stringify(cart));
 }
 
 function updateCart() {
-  cartItemsContainer.innerHTML = ""
+    cartItemsContainer.innerHTML = "";
+    let total = 0;
+    let itemsCount = 0;
 
-  let total = 0
-  let itemsCount = 0
+    cart.forEach((item) => {
+        const lineTotal = item.price * item.quantity;
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <span>${item.name} x${item.quantity}</span>
+            <span>${lineTotal.toFixed(2)} TND</span>
+        `;
+        cartItemsContainer.appendChild(li);
+        total += lineTotal;
+        itemsCount += item.quantity;
+    });
 
-  cart.forEach((item) => {
-    const lineTotal = item.price * item.quantity
-    const li = document.createElement("li")
-    li.textContent = `${item.name} x${item.quantity} - ${lineTotal.toFixed(2)} TND`
-    cartItemsContainer.appendChild(li)
-
-    total += lineTotal
-    itemsCount += item.quantity
-  })
-
-  cartTotalDisplay.textContent = total.toFixed(2) + " TND"
-  cartCountDisplay.textContent = itemsCount
+    cartTotalDisplay.textContent = total.toFixed(2) + " TND";
+    cartCountDisplay.textContent = itemsCount;
 }
+function clearCart() {
+    cart = [];
+    saveCartToStorage();
+    updateCart();
+}
+
+function checkout() {
+    if (cart.length === 0) {
+        alert('Votre panier est vide');
+        return;
+    }
+    
+    // Hide cart
+    cartCard.classList.remove('visible');
+    
+    // Redirect to cart page with cart data
+    const cartData = encodeURIComponent(JSON.stringify(cart));
+    window.location.href = `cart?cart=${cartData}`;
+}
+
 
 function showCart() {
-  cartCard.classList.add("visible")
+    cartCard.classList.add("visible");
 }
 
-// ===================== MODAL + REVIEW =====================
+// ===================== PRODUCTS =====================
+function displayProducts(items) {
+    productsContainer.innerHTML = "";
 
+    if (!items || items.length === 0) {
+        productsContainer.innerHTML = "<p>Aucun produit trouvé.</p>";
+        return;
+    }
+
+    items.forEach((food) => {
+        const allergyTags = food.allergy && food.allergy.length
+            ? food.allergy.map((a) => {
+                const key = a.toLowerCase();
+                let extra = "";
+                if (key.includes("gluten")) extra = " gluten";
+                else if (key.includes("lactose")) extra = " lactose";
+                else if (key.includes("noix") || key.includes("nut")) extra = " nut";
+                return `<span class="tag${extra}">${a}</span>`;
+            }).join(" ")
+            : "";
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+            <img src="${food.img}" alt="${food.name}" onerror="this.src='no-image.png'">
+            <h3>${food.name}</h3>
+            <p>${food.desc}</p>
+            <div class="allergy-tags">${allergyTags}</div>
+            <p><strong>${food.price.toFixed(2)} TND</strong></p>
+            <button onclick="addToCart(${JSON.stringify(food).replace(/"/g, '&quot;')})">Ajouter</button>
+        `;
+
+        card.addEventListener("click", (e) => {
+            if (!e.target.tagName === 'BUTTON') {
+                openProductModal(food);
+            }
+        });
+
+        productsContainer.appendChild(card);
+    });
+}
+
+// ===================== MODAL =====================
 function openProductModal(food) {
-  const allergyTags = food.allergy.length ? food.allergy.map((a) => `<span class="tag">${a}</span>`).join(" ") : ""
+    const allergyTags = food.allergy && food.allergy.length
+        ? food.allergy.map((a) => {
+            const key = a.toLowerCase();
+            let extra = "";
+            if (key.includes("gluten")) extra = " gluten";
+            else if (key.includes("lactose")) extra = " lactose";
+            else if (key.includes("noix") || key.includes("nut")) extra = " nut";
+            return `<span class="tag${extra}">${a}</span>`;
+        }).join(" ")
+        : "";
 
-  modalBody.innerHTML = `
-    <div class="card">
-      <img src="${food.img}" alt="${food.name}">
-      <h3>${food.name}</h3>
-      <p>${food.desc}</p>
-      <div class="allergy-tags">${allergyTags}</div>
-      <p><strong>${food.price.toFixed(2)} TND</strong></p>
-      <button id="modal-add-cart">Add to Cart</button>
+    modalBody.innerHTML = `
+        <div class="card">
+            <img src="${food.img}" alt="${food.name}" onerror="this.src='no-image.png'">
+            <h3>${food.name}</h3>
+            <p>${food.desc}</p>
+            <div class="allergy-tags">${allergyTags}</div>
+            <p><strong>${food.price.toFixed(2)} TND</strong></p>
+            <button onclick="addToCart(${JSON.stringify(food).replace(/"/g, '&quot;')})">Ajouter au panier</button>
+        </div>
+    `;
 
-      <hr style="margin:15px 0;">
+    modal.classList.add("open");
+}
 
-      <div>
-        <h4>Laisser un avis</h4>
-        <label for="review-rating">Note (1-5, optionnelle)</label><br>
-        <select id="review-rating">
-          <option value="">Aucune</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-        </select>
-
-        <br><br>
-        <textarea id="review-comment" rows="3" style="width:100%;" placeholder="Écrivez votre avis..."></textarea>
-        <br>
-        <button id="review-submit">Envoyer l'avis</button>
-      </div>
-    </div>
-  `
-
-  modal.classList.add("open")
-
-  document.getElementById("modal-add-cart").addEventListener("click", () => addToCart(food))
-
-  document.getElementById("review-submit").addEventListener("click", async () => {
-    const ratingVal = document.getElementById("review-rating").value
-    const comment = document.getElementById("review-comment").value.trim()
-    const rating = ratingVal ? Number.parseInt(ratingVal, 10) : null
-
-    if (!comment) {
-      alert("Veuillez écrire un avis.")
-      return
+// ===================== UI FUNCTIONS =====================
+function initThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
     }
+}
 
-    try {
-      const res = await fetch("api.php?action=save_review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          id_plat: food.id,
-          rating,
-          comment,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        alert(data.error || "Erreur lors de l'envoi de l'avis.")
-        return
-      }
-      alert("Merci pour votre avis !")
-      modal.classList.remove("open")
-    } catch (e) {
-      console.error("Review error", e)
-      alert("Erreur réseau lors de lenvoi de lavis.")
+function initBurgerMenu() {
+    const burger = document.getElementById('burger-menu');
+    const nav = document.getElementById('main-nav');
+    if (burger && nav) {
+        burger.addEventListener('click', () => {
+            nav.classList.toggle('open');
+        });
     }
-  })
 }
 
-// ===================== FILTERING =====================
-
-function filterProducts() {
-  const text = searchInput.value.toLowerCase()
-  const category = categoryFilter.value
-  const selectedAllergies = Array.from(document.querySelectorAll(".allergy-checkbox:checked")).map((cb) => cb.value)
-
-  let filtered = foods.filter((food) => {
-    const matchesText = food.name.toLowerCase().includes(text)
-    const matchesCategory = category === "all" || food.category === category
-    const matchesAllergy = selectedAllergies.length === 0 || selectedAllergies.some((a) => food.allergy.includes(a))
-    return matchesText && matchesCategory && matchesAllergy
-  })
-
-  if (sortFilter) {
-    switch (sortFilter.value) {
-      case "price-asc":
-        filtered = filtered.slice().sort((a, b) => a.price - b.price)
-        break
-      case "price-desc":
-        filtered = filtered.slice().sort((a, b) => b.price - a.price)
-        break
-      case "popularity-desc":
-        filtered = filtered.slice().sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-        break
-    }
-  }
-
-  displayProducts(filtered)
-}
-
-if (sortFilter) {
-  sortFilter.addEventListener("change", filterProducts)
-}
-
-// ===================== SETUP FILTERS =====================
-
-function setupFilters(data) {
-  const categories = [...new Set(data.map((f) => f.category))]
-
-  // ---- Categories ----
-  categories.forEach((cat) => {
-    const opt = document.createElement("option")
-    opt.value = cat
-    opt.textContent = cat
-    categoryFilter.appendChild(opt)
-  })
-
-  // ---- Allergies ----
-  const allergies = [...new Set(data.flatMap((f) => f.allergy))]
-
-  allergies.forEach((a) => {
-    const id = `allergy-${a}`
-    const div = document.createElement("div")
-    div.innerHTML = `
-      <input type="checkbox" class="allergy-checkbox" value="${a}" id="${id}">
-      <label for="${id}">${a}</label>
-    `
-    allergyContainer.appendChild(div)
-  })
-
-  document.querySelectorAll(".allergy-checkbox").forEach((cb) => cb.addEventListener("change", filterProducts))
-}
-
-// ===================== FETCH DATABASE DATA =====================
-
-fetch("api.php")
-  .then((res) => res.json())
-  .then((data) => {
-    foods = data.map((f) => ({
-      id: f.id,
-      name: f.nom,
-      desc: f.description || "",
-      price: Number.parseFloat(f.prix),
-      category: f.category,
-      img: f.image_url || "https://via.placeholder.com/300x200",
-      allergy: Array.isArray(f.allergies)
-        ? f.allergies
-        : f.allergies
-          ? f.allergies.split(",").map((a) => a.trim())
-          : [],
-      popularity: Number(f.popularity) || 0,
-    }))
-
-    setupFilters(foods)
-    displayProducts(foods)
-  })
-  .catch((err) => console.error("Fetch Error:", err))
-
-// ===================== UI EVENTS =====================
-
-searchInput.addEventListener("input", filterProducts)
-categoryFilter.addEventListener("change", filterProducts)
-
-cartBtn.addEventListener("click", () => {
-  cartCard.classList.toggle("visible")
-})
-
-// Now just go to cart page, do not call API directly
-buyBtn.addEventListener("click", () => {
-  if (cart.length === 0) {
-    alert("Votre panier est vide.")
-    return
-  }
-
-  sessionStorage.setItem("cart", JSON.stringify(cart))
-  window.location.href = "cart" // /web/cart.php via router
-})
-
-// Modal close handlers
-
-if (modalClose) {
-  modalClose.addEventListener("click", () => {
-    modal.classList.remove("open")
-  })
-}
-
-if (modal) {
-  modal.addEventListener("click", (e) => {
+// Close modal
+document.addEventListener('click', (e) => {
     if (e.target === modal) {
-      modal.classList.remove("open")
+        modal.classList.remove('open');
     }
-  })
-}
-
-initCart()
-initThemeToggle()
-initBurgerMenu()
+});
