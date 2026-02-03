@@ -1,4 +1,4 @@
-// buypage.js - BULLETPROOF CATEGORY FILTERING
+// buypage.js - BULLETPROOF CATEGORY FILTERING + COMPLETE
 
 // ===================== DOM ELEMENTS =====================
 const productsContainer = document.getElementById('products-container');
