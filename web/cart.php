@@ -14,64 +14,59 @@ session_start();
 <body>
     <nav class="navbar">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div class="logo">FoodMarket</div>
+            <div class="logo">Gresto</div>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
-            <!-- Fixed: Empty button - CSS handles emoji via ::before -->
-            <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode"></button>
-            <div style="display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+            <div style="display: flex; align-items: center; gap: 12px; color: var(--text-primary);">
                 <?php if (!empty($_SESSION['auth'])): ?>
                     <span style="font-weight: 500;"><?php echo htmlspecialchars($_SESSION['auth']['nom']); ?></span>
-                    <a href="logout"
-                        style="color: white; padding: 8px 16px; background: var(--primary); border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.2s ease;">Déconnexion</a>
+                    <a href="logout" class="btn-logout">Déconnexion</a>
                 <?php else: ?>
-                    <a href="login"
-                        style="color: var(--text-primary); text-decoration: none; font-weight: 500;">Connexion</a>
+                    <a href="login" style="color: var(--text-primary); text-decoration: none; font-weight: 500;">Connexion</a>
                 <?php endif; ?>
-                <a href="shop"
-                    style="color: var(--text-primary); text-decoration: none; padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 6px;">Retour boutique</a>
+                <a href="shop" class="btn-shop">Retour boutique</a>
             </div>
         </div>
     </nav>
 
-    <div class="container" style="padding:20px; flex-direction:column;">
-        <h2>Confirmation de commande</h2>
-        <p>Veuillez vérifier votre panier avant de confirmer.</p>
+    <button id="theme-toggle" class="floating-theme-toggle" title="Toggle Theme"></button>
 
-        <div class="card" style="max-width:600px;margin-top:20px;">
+    <div class="container" style="padding: 20px; flex-direction: column; align-items: center;">
+        <h2 style="text-align: center;">Confirmation de commande</h2>
+        <p style="text-align: center; color: var(--text-secondary);">Veuillez vérifier votre panier avant de confirmer.</p>
+
+        <div class="card cart-summary-card">
             <h3>Votre panier</h3>
             <ul id="cart-summary-list"></ul>
-            <p>
-                <strong>Total:
-                    <span id="cart-summary-total">0.00 TND</span>
-                </strong>
-            </p>
-            <button id="confirm-order-btn" style="margin-top:10px;">
-                Confirmer la commande
-            </button>
+            
+            <div class="cart-summary-footer">
+                <p class="total-line">
+                    <strong>Total: <span id="cart-summary-total">0.00 TND</span></strong>
+                </p>
+                <button id="confirm-order-btn" class="btn-confirm">
+                    Confirmer la commande
+                </button>
+            </div>
         </div>
-        <div id="order-message" style="display:none; margin-top:20px;"></div>
+        <div id="order-message" style="display:none; margin-top:20px; width: 100%; max-width: 600px;"></div>
     </div>
 
     <script>
-        // FIXED: Clean theme toggle - NO textContent (prevents double emojis)
+        // Floating Theme Toggle Logic
         function initThemeToggle() {
             const themeToggle = document.getElementById("theme-toggle");
             if (!themeToggle) return;
             
-            const html = document.documentElement;
-            const savedTheme = localStorage.getItem("theme") || "light";
+            const body = document.body;
+            const savedTheme = localStorage.getItem("theme");
             
-            // Apply saved theme
             if (savedTheme === "dark") {
-                html.classList.add("dark-mode");
+                body.classList.add("dark-mode");
             }
             
-            // Toggle on click - CSS handles icons
             themeToggle.addEventListener("click", () => {
-                const isDark = html.classList.toggle("dark-mode");
+                const isDark = body.classList.toggle("dark-mode");
                 localStorage.setItem("theme", isDark ? "dark" : "light");
-                // NO textContent = no double emojis!
             });
         }
 
@@ -99,8 +94,6 @@ session_start();
             } catch (e) {
                 console.error('Erreur écriture cart sessionStorage', e);
             }
-
-            // Sync DB cart as well
             fetch('api.php?action=save_cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -111,27 +104,32 @@ session_start();
 
         function renderCartSummary() {
             listEl.innerHTML = '';
-            listEl.style.listStyle = 'none';
-            listEl.style.paddingLeft = '0';
+            listEl.className = 'cart-list-styled'; // Use CSS class instead of inline styles
 
             let total = 0;
 
+            if (cart.length === 0) {
+                listEl.innerHTML = '<li style="text-align:center; padding: 20px;">Votre panier est vide.</li>';
+                totalEl.textContent = '0.00 TND';
+                return;
+            }
+
             cart.forEach((item, index) => {
                 const li = document.createElement('li');
-                li.style.display = 'flex';
-                li.style.alignItems = 'center';
-                li.style.justifyContent = 'space-between';
-                li.style.margin = '4px 0';
+                li.className = 'cart-item-row';
 
                 const lineTotal = item.price * item.quantity;
                 total += lineTotal;
 
                 li.innerHTML = `
-                    <span>${item.name} x${item.quantity} - ${lineTotal.toFixed(2)} TND</span>
-                    <span>
-                        <button type="button" class="qty-btn" data-index="${index}" data-op="dec">-</button>
-                        <button type="button" class="qty-btn" data-index="${index}" data-op="inc">+</button>
-                    </span>
+                    <span class="item-name">${item.name} <small>x${item.quantity}</small></span>
+                    <div class="item-actions">
+                        <span class="item-price">${lineTotal.toFixed(2)} TND</span>
+                        <div class="qty-controls">
+                            <button type="button" class="qty-btn" data-index="${index}" data-op="dec">-</button>
+                            <button type="button" class="qty-btn" data-index="${index}" data-op="inc">+</button>
+                        </div>
+                    </div>
                 `;
 
                 listEl.appendChild(li);
@@ -190,13 +188,13 @@ session_start();
                 try {
                     data = JSON.parse(text);
                 } catch (e) {
-                    console.error('Invalid JSON from create_order. Raw:', text);
+                    console.error('Invalid JSON', text);
                     alert('Erreur serveur.');
                     return;
                 }
 
                 if (res.status === 401) {
-                    alert('Login to be able to order');
+                    alert('Veuillez vous connecter pour commander');
                     const backUrl = encodeURIComponent('cart');
                     window.location.href = `login?redirect=${backUrl}`;
                     return;
@@ -210,38 +208,33 @@ session_start();
                 cart = [];
                 sessionStorage.removeItem('cart');
 
+                // Success Message
                 messageBox.innerHTML = `
-                    <div style="
-                        background:#e8f5e9;
-                        border:1px solid #2ecc71;
-                        padding:16px;
-                        border-radius:8px;
-                        max-width:600px;
-                    ">
-                        <h3 style="margin-top:0;">Commande confirmée !</h3>
+                    <div class="success-box">
+                        <h3>Commande confirmée !</h3>
                         <p>Référence: <strong>${data.reference}</strong></p>
-                        <button id="back-to-shop-btn" style="margin-top:10px;">
+                        <button id="back-to-shop-btn" class="btn-confirm">
                             Retourner à la boutique
                         </button>
                     </div>
                 `;
                 messageBox.style.display = 'block';
-
-                renderCartSummary();
-
-                const backBtn = document.getElementById('back-to-shop-btn');
-                if (backBtn) {
-                    backBtn.addEventListener('click', () => {
+                // Hide cart card after success
+                document.querySelector('.cart-summary-card').style.display = 'none';
+                
+                // Re-bind back button
+                setTimeout(() => {
+                    document.getElementById('back-to-shop-btn').addEventListener('click', () => {
                         window.location.href = 'shop';
                     });
-                }
+                }, 100);
+
             } catch (e) {
                 console.error('Order error', e);
                 alert('Erreur réseau lors de la commande.');
             }
         }
 
-        // Initialize everything
         document.addEventListener('DOMContentLoaded', () => {
             initThemeToggle();
             loadCartFromSession();

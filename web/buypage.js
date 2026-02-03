@@ -17,7 +17,7 @@ let foods = [];
 document.addEventListener('DOMContentLoaded', function () {
   initCart();
   loadProducts();
-  initThemeToggle();
+  initThemeToggle(); // ✅ Centralized theme logic
   initBurgerMenu();
   initModalClose();
   initCartUIButtons();
@@ -84,7 +84,6 @@ function initFilters() {
   const categoryFilter = document.getElementById('category-filter');
   const allergyContainer = document.getElementById('allergy-filters');
 
-  // ✅ FIXED: Populate categories by ID with proper names
   if (categoryFilter) {
     categoryFilter.innerHTML = `
       <option value="all">Toutes les catégories</option>
@@ -110,22 +109,18 @@ function applyFilters() {
   ).map(cb => cb.value);
 
   let filtered = foods.filter(food => {
-    // Search filter
     const matchesSearch = !searchTerm || 
       food.name?.toLowerCase().includes(searchTerm) || 
       food.desc?.toLowerCase().includes(searchTerm);
 
-    // ✅ FIXED: Category filter by id_categorie (direct number match)
     const matchesCategory = categoryId === 'all' || food.id_categorie == categoryId;
 
-    // Allergen filter - exclude selected allergens
     const matchesAllergens = selectedAllergens.length === 0 || 
       !food.allergy?.some(a => selectedAllergens.includes(a));
 
     return matchesSearch && matchesCategory && matchesAllergens;
   });
 
-  // Apply sorting
   if (sortValue === 'price-asc') {
     filtered.sort((a, b) => a.price - b.price);
   } else if (sortValue === 'price-desc') {
@@ -278,7 +273,6 @@ function displayProducts(items) {
   }
 
   items.forEach((food) => {
-    // ✅ Get category name from id_categorie
     const categoryNames = {
       1: 'Entrées',
       2: 'Plats principaux', 
@@ -398,18 +392,29 @@ function initModalClose() {
   });
 }
 
-// ===================== UI FUNCTIONS =====================
+// ===================== UI FUNCTIONS & THEME =====================
+// In shop.php script section:
+
 function initThemeToggle() {
-  const toggle = document.getElementById('theme-toggle');
-  if (!toggle) return;
-
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') document.documentElement.classList.add('dark-mode');
-
-  toggle.addEventListener('click', () => {
-    const isDark = document.documentElement.classList.toggle('dark-mode');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  });
+    const themeToggle = document.getElementById("theme-toggle");
+    if (!themeToggle) return;
+    
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem("theme") || "light";
+    
+    // Apply saved theme
+    if (savedTheme === "dark") {
+        html.classList.add("dark-mode");
+    }
+    
+    // Toggle on click
+    themeToggle.addEventListener("click", () => {
+        const isDark = html.classList.toggle("dark-mode");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        
+        // IMPORTANT: Do NOT set themeToggle.textContent here.
+        // The CSS ::before pseudo-element handles the emoji automatically.
+    });
 }
 
 function initBurgerMenu() {
@@ -421,29 +426,3 @@ function initBurgerMenu() {
     nav.classList.toggle('open');
   });
 }
-// --- Theme Toggle with Icon Logic ---
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = themeToggle.querySelector('.theme-icon');
-const body = document.body;
-
-// 1. Load saved theme from localStorage
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme === 'dark') {
-    body.classList.add('dark-mode');
-    themeIcon.textContent = '🌙'; // Set Moon
-} else {
-    themeIcon.textContent = '☀️'; // Set Sun
-}
-
-// 2. Add Click Event Listener
-themeToggle.addEventListener('click', () => {
-    body.classList.toggle('dark-mode');
-    
-    if (body.classList.contains('dark-mode')) {
-        themeIcon.textContent = '🌙'; // Switch to Moon
-        localStorage.setItem('theme', 'dark');
-    } else {
-        themeIcon.textContent = '☀️'; // Switch to Sun
-        localStorage.setItem('theme', 'light');
-    }
-});
