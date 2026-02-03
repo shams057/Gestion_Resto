@@ -514,3 +514,8 @@ html.dark-mode .btn-cam:hover {
         flex-wrap: wrap;
     }
 }
+@keyframes pulse-red {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}

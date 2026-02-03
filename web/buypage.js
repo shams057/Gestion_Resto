@@ -421,3 +421,29 @@ function initBurgerMenu() {
     nav.classList.toggle('open');
   });
 }
+// --- Theme Toggle with Icon Logic ---
+const themeToggle = document.getElementById('theme-toggle');
+const themeIcon = themeToggle.querySelector('.theme-icon');
+const body = document.body;
+
+// 1. Load saved theme from localStorage
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+    body.classList.add('dark-mode');
+    themeIcon.textContent = '🌙'; // Set Moon
+} else {
+    themeIcon.textContent = '☀️'; // Set Sun
+}
+
+// 2. Add Click Event Listener
+themeToggle.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+    
+    if (body.classList.contains('dark-mode')) {
+        themeIcon.textContent = '🌙'; // Switch to Moon
+        localStorage.setItem('theme', 'dark');
+    } else {
+        themeIcon.textContent = '☀️'; // Switch to Sun
+        localStorage.setItem('theme', 'light');
+    }
+});

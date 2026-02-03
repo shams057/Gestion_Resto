@@ -33,7 +33,8 @@ except Exception as e:
 global_status = {
     "personnes": 0,
     "presence": False,
-    "message": "Initialisation..."
+    "message": "Initialisation...",
+    "camera_index": 0  # <--- Added so Dashboard knows which Table
 }
 
 # --- CLASS SINGLETON CAMERA ---
@@ -103,8 +104,25 @@ class VideoCamera(object):
                 self.cap = None
                 continue
 
+            # --- CALCUL DU FACTEUR D'ÉCHELLE (RESPONSIVE) ---
+            h, w = frame.shape[:2]
+            # On utilise 600px comme hauteur de référence.
+            # Si l'image est plus grande, sf sera > 1.0 (ex: 1.8 pour du 1080p)
+            sf = max(0.5, h / 600.0) 
+
+            # Variables de style ajustées
+            thick_sm = max(1, int(1 * sf))  # Épaisseur petite
+            thick_lg = max(2, int(2 * sf))  # Épaisseur grande
+            font_sm = 0.5 * sf              # Taille police petite
+            font_md = 0.8 * sf              # Taille police moyenne
+            font_lg = 1.2 * sf              # Taille police grande
+            
+            # Marges ajustées
+            margin_x = int(20 * sf)
+            margin_y = int(55 * sf)
+            banner_h = int(80 * sf)
+
             # 3. Traitement IA (YOLO)
-            # On utilise un try/catch pour que l'IA ne fasse pas crasher la vidéo
             try:
                 results = model(frame, classes=[0], conf=0.5, verbose=False, device=device)
                 
@@ -117,9 +135,15 @@ class VideoCamera(object):
 
                     for box in results[0].boxes:
                         x1, y1, x2, y2 = map(int, box.xyxy[0])
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                        cv2.putText(frame, f"Personne {float(box.conf[0]):.2f}", (x1, y1 - 10), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                        # Dessin Responsive
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), thick_lg)
+                        
+                        label = f"Personne {float(box.conf[0]):.2f}"
+                        # Ajustement de la position Y pour que ça reste collé à la boîte
+                        text_y = max(y1 - int(10 * sf), int(20 * sf)) 
+                        
+                        cv2.putText(frame, label, (x1, text_y), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, font_sm, (0, 255, 0), thick_lg)
 
                 # Logique Métier (Présence/Absence)
                 if detection_actuelle:
@@ -132,10 +156,11 @@ class VideoCamera(object):
                             self.presence_status = False
                             self.absence_counter = 0
                         else:
-                            cv2.putText(frame, "Cible perdue...", (20, 150), 
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 165, 255), 2)
+                            # Message Responsive
+                            cv2.putText(frame, "Cible perdue...", (margin_x, int(150 * sf)), 
+                                        cv2.FONT_HERSHEY_SIMPLEX, font_md, (0, 165, 255), thick_lg)
 
-                # Bannière
+                # Bannière Responsive
                 if self.presence_status:
                     color = (0, 200, 0)
                     txt = f"PERSONNES: {num_persons}" if detection_actuelle else "RECHERCHE..."
@@ -143,13 +168,14 @@ class VideoCamera(object):
                     color = (50, 50, 50)
                     txt = "ZONE VIDE"
 
-                cv2.rectangle(frame, (0, 0), (frame.shape[1], 80), color, -1)
-                cv2.putText(frame, txt, (20, 55), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 2)
+                cv2.rectangle(frame, (0, 0), (w, banner_h), color, -1)
+                cv2.putText(frame, txt, (margin_x, margin_y), cv2.FONT_HERSHEY_SIMPLEX, font_lg, (255, 255, 255), thick_lg)
 
                 # Update Global Status (pour l'API JSON)
                 global_status["personnes"] = num_persons
                 global_status["presence"] = self.presence_status
                 global_status["message"] = txt
+                global_status["camera_index"] = self.cam_index # <--- Critical for Dashboard
 
             except Exception as e:
                 print(f"Erreur IA: {e}")

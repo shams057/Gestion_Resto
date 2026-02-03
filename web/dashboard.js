@@ -194,3 +194,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+async function updateExistingAlertCard() {
+    // Select the existing elements from your HTML
+    const alertValue = document.getElementById('stat-alerts');
+    const alertLabel = alertValue.parentElement.querySelector('h3'); // The title "Alertes (★≤3)"
+    const alertIcon = alertValue.closest('.stat-card').querySelector('.stat-icon');
+
+    try {
+        const response = await fetch('http://localhost:3000/api/data');
+        const data = await response.json();
+
+        // If 'presence' is false (Person Missing)
+        if (!data.presence) {
+            // 1. Change the big number to "Table X"
+            // We use the camera_index we added to python
+            alertValue.innerText = `Table ${data.camera_index}`;
+            
+            // 2. Style it Red/Danger
+            alertValue.style.color = "#dc3545"; 
+            alertValue.style.fontSize = "1.2rem"; // Make text slightly smaller to fit "Table 0"
+
+            // 3. Update the label so it makes sense
+            alertLabel.innerText = "⚠️ Client Manquant";
+
+            // 4. Make the icon pulse
+            alertIcon.style.animation = "pulse-red 1s infinite";
+            alertIcon.style.backgroundColor = "#ffe6e6"; // Light red bg
+            alertIcon.innerText = "🚨";
+        } 
+        else {
+            // RESET to Normal (when person is found)
+            alertValue.innerText = "0"; // Or your default review count
+            alertValue.style.color = ""; // Reset color
+            alertValue.style.fontSize = ""; 
+            
+            alertLabel.innerText = "Alertes (★≤3)"; // Reset Original Title
+            
+            alertIcon.style.animation = "none";
+            alertIcon.style.backgroundColor = ""; // Reset bg
+            alertIcon.innerText = "⚠️";
+        }
+
+    } catch (error) {
+        console.error("API Error:", error);
+    }
+}
+
+// Check every 1 second
+setInterval(updateExistingAlertCard, 1000);

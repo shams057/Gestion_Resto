@@ -1,6 +1,6 @@
 <script>
     if (!sessionStorage.getItem('auth') && !document.cookie.includes('PHPSESSID')) {
-       // Ideally you check via a small fetch, but this is a basic frontend guard
+        // Ideally you check via a small fetch, but this is a basic frontend guard
     }
 </script>
 <!DOCTYPE html>
@@ -39,17 +39,20 @@
                 <li><a href="logout" class="nav-link">Déconnexion</a></li>
             </ul>
         </nav>
-
+        <div id="security-alert" class="alert-banner" style="display: none;">
+            <span class="alert-icon">⚠️</span>
+            <span class="alert-text">ALERT: Security Camera detects NO presence!</span>
+        </div>
         <main class="content-area">
             <header class="dashboard-header">
                 <div>
                     <h1>Vue d'ensemble</h1>
                     <p class="subtitle">Bienvenue sur votre tableau de bord</p>
                 </div>
-                
+
                 <div class="header-controls">
                     <a href="cam.html" target="_blank" class="btn-cam">
-                        <span class="icon">📹</span> 
+                        <span class="icon">📹</span>
                         <span>Caméra Live</span>
                     </a>
 
@@ -82,7 +85,7 @@
                 <div class="stat-card">
                     <div class="stat-icon alerts-icon">⚠️</div>
                     <div class="stat-info">
-                        <h3>Alertes (★≤3)</h3>
+                        <h3>Alertes</h3>
                         <p class="stat-value" id="stat-alerts">--</p>
                     </div>
                 </div>
@@ -102,7 +105,7 @@
                             <h3>7 derniers jours</h3>
                         </div>
                         <ul class="data-list" id="orders-today">
-                            </ul>
+                        </ul>
                     </div>
                 </div>
 
@@ -112,7 +115,7 @@
                             <h3>Plats Populaires</h3>
                         </div>
                         <ul class="data-list" id="popular-dishes">
-                            </ul>
+                        </ul>
                     </div>
                 </div>
 
@@ -165,4 +168,5 @@
 
     <script src="/dashboard.js"></script>
 </body>
+
 </html>
