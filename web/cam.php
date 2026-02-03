@@ -1,9 +1,20 @@
+<script>
+    if (!sessionStorage.getItem('auth') && !document.cookie.includes('PHPSESSID')) {
+    }
+</script>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOLOv8 Surveillance API</title>
+    <title>Cam Live</title>
+    <link rel="icon" type="image/png" href="img/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="img/favicon.png/favicon.svg" />
+    <link rel="shortcut icon" href="img/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Gresto" />
+    <link rel="manifest" href="img/site.webmanifest" />
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,15 +29,18 @@
             transition: background-color 0.5s;
         }
 
-        h1 { margin-bottom: 10px; }
+        h1 {
+            margin-bottom: 10px;
+        }
 
         .container {
             position: relative;
             border: 4px solid #444;
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            min-height: 400px; /* Evite le saut d'image lors du changement */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            min-height: 400px;
+            /* Evite le saut d'image lors du changement */
             background: #000;
         }
 
@@ -49,11 +63,19 @@
             align-items: center;
         }
 
-        .stat-box { font-size: 1.2rem; }
-        .stat-value { font-weight: bold; font-size: 1.5rem; color: #00ff00; }
-        
+        .stat-box {
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #00ff00;
+        }
+
         .live-dot {
-            height: 15px; width: 15px;
+            height: 15px;
+            width: 15px;
             background-color: red;
             border-radius: 50%;
             display: inline-block;
@@ -71,9 +93,14 @@
             cursor: pointer;
         }
 
-        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <h1><span class="live-dot"></span> Surveillance IA En Direct</h1>
@@ -85,7 +112,7 @@
     <div class="info-panel">
         <div class="stat-box">Statut: <span id="status-txt" class="stat-value">Chargement...</span></div>
         <div class="stat-box">Personnes: <span id="count-txt" class="stat-value">0</span></div>
-        
+
         <div class="stat-box">
             Source:
             <select id="cam-select" onchange="switchCamera()">
@@ -105,11 +132,11 @@
             // 1. Appeler l'API pour changer la variable globale python
             try {
                 await fetch(`http://localhost:3000/api/set_camera/${index}`);
-                
+
                 // 2. Forcer le rechargement de l'image pour relancer le stream avec le nouvel index
                 // On ajoute un timestamp (?t=...) pour empêcher le cache navigateur
                 img.src = `http://localhost:3000/video_feed?t=${new Date().getTime()}`;
-                
+
             } catch (error) {
                 console.error("Erreur lors du changement de caméra:", error);
                 alert("Erreur de connexion à l'API");
@@ -148,4 +175,5 @@
     </script>
 
 </body>
+
 </html>

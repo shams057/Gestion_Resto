@@ -43,7 +43,7 @@ class VideoCamera(object):
         self.lock = threading.Lock()
         self.cam_index = 0
         self.cap = None
-        self.latest_frame = None  # Stocke la dernière image traitée (bytes)
+        self.latest_frame = None  # Stock la dernière image traitée (bytes)
         self.is_running = False
         
         # Statuts de détection

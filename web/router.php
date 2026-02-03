@@ -50,6 +50,14 @@ switch ($path) {
         require __DIR__ . '/api_dashboard.php';
         break;
 
+    case '/auth':
+        require __DIR__ . '/auth_redirect.php';
+        break;
+
+    case '/callback':
+        require __DIR__ . '/auth_callback.php';
+        break;
+
     default:
         http_response_code(404);
         echo 'Not Found';

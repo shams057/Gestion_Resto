@@ -116,7 +116,7 @@ function applyFilters() {
     const matchesCategory = categoryId === 'all' || food.id_categorie == categoryId;
 
     const matchesAllergens = selectedAllergens.length === 0 || 
-      !food.allergy?.some(a => selectedAllergens.includes(a));
+      food.allergy?.some(a => selectedAllergens.includes(a));
 
     return matchesSearch && matchesCategory && matchesAllergens;
   });

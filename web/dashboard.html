@@ -1,6 +1,5 @@
 <script>
     if (!sessionStorage.getItem('auth') && !document.cookie.includes('PHPSESSID')) {
-        // Ideally you check via a small fetch, but this is a basic frontend guard
     }
 </script>
 <!DOCTYPE html>
@@ -12,6 +11,12 @@
     <title>Dashboard - Gresto</title>
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="img/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="img/favicon.png/favicon.svg" />
+    <link rel="shortcut icon" href="img/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Gresto" />
+    <link rel="manifest" href="img/site.webmanifest" />
 </head>
 
 <body>

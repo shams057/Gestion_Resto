@@ -8,6 +8,12 @@ session_start();
     <meta charset="utf-8">
     <title>Connexion - Gestion Resto</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="img/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="img/favicon.png/favicon.svg" />
+    <link rel="shortcut icon" href="img/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Gresto" />
+    <link rel="manifest" href="img/site.webmanifest" />
 
     <style>
         body {
@@ -64,6 +70,79 @@ session_start();
             margin-top: 8px;
             display: none;
         }
+
+        /* Social Buttons Container */
+        .social-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-social {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.1s ease;
+            border: 1px solid #ddd;
+        }
+
+        .btn-social:active {
+            transform: scale(0.98);
+        }
+
+        /* Google Specific */
+        .btn-social.google {
+            background: #ffffff;
+            color: #757575;
+        }
+
+        .btn-social.google:hover {
+            background: #f8f8f8;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Facebook Specific */
+        .btn-social.facebook {
+            background: #1877F2;
+            color: #ffffff;
+            border: none;
+        }
+
+        .btn-social.facebook:hover {
+            background: #166fe5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Divider "OR" */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #eee;
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: .5em;
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: .5em;
+        }
     </style>
 </head>
 
@@ -80,18 +159,15 @@ session_start();
             Don't have an account?
             <a class="link" href="signup">Create one</a>
         </p>
-        <div>
-            <a href="router.php?provider=google" class="btn-social google">
-                <img src="img/google.png" alt="Google"
-                    style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">
+        <div class="divider">OU</div>
+
+        <div class="social-container">
+            <a href="/auth?provider=google" class="btn-social google">
+                <img src="img/google.png" alt="Google" style="width:18px; height:18px; margin-right:10px;">
                 Continuer avec Google
             </a>
-        </div>
-        <div>
-            <a href="router.php?provider=facebook" class="btn-social facebook">
-                <img src="img/facebook.png" alt="Facebook"
-                    style="width:20px; height:20px; vertical-align:middle; margin-right:8px;">
-                Continuer avec Facebook
+
+            
             </a>
         </div>
     </div>

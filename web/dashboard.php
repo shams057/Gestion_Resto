@@ -21,6 +21,12 @@ if ($_SESSION['auth']['role'] !== 'admin') {
     <link rel="stylesheet" href="style.css">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="img/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="img/favicon.png/favicon.svg" />
+    <link rel="shortcut icon" href="img/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Gresto" />
+    <link rel="manifest" href="img/site.webmanifest" />
 </head>
 
 <body>

@@ -3,12 +3,19 @@ session_start();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <title>Panier - FoodMarket</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styleBP.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="img/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="img/favicon.png/favicon.svg" />
+    <link rel="shortcut icon" href="img/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Gresto" />
+    <link rel="manifest" href="img/site.webmanifest" />
 </head>
 
 <body>
@@ -22,7 +29,8 @@ session_start();
                     <span style="font-weight: 500;"><?php echo htmlspecialchars($_SESSION['auth']['nom']); ?></span>
                     <a href="logout" class="btn-logout">Déconnexion</a>
                 <?php else: ?>
-                    <a href="login" style="color: var(--text-primary); text-decoration: none; font-weight: 500;">Connexion</a>
+                    <a href="login"
+                        style="color: var(--text-primary); text-decoration: none; font-weight: 500;">Connexion</a>
                 <?php endif; ?>
                 <a href="shop" class="btn-shop">Retour boutique</a>
             </div>
@@ -33,12 +41,13 @@ session_start();
 
     <div class="container" style="padding: 20px; flex-direction: column; align-items: center;">
         <h2 style="text-align: center;">Confirmation de commande</h2>
-        <p style="text-align: center; color: var(--text-secondary);">Veuillez vérifier votre panier avant de confirmer.</p>
+        <p style="text-align: center; color: var(--text-secondary);">Veuillez vérifier votre panier avant de confirmer.
+        </p>
 
         <div class="card cart-summary-card">
             <h3>Votre panier</h3>
             <ul id="cart-summary-list"></ul>
-            
+
             <div class="cart-summary-footer">
                 <p class="total-line">
                     <strong>Total: <span id="cart-summary-total">0.00 TND</span></strong>
@@ -52,7 +61,7 @@ session_start();
     </div>
 
     <script>
-        // Floating Theme Toggle Logic
+        // 1. Theme Toggle Logic
         function initThemeToggle() {
             const themeToggle = document.getElementById("theme-toggle");
             if (!themeToggle) return;
@@ -70,41 +79,66 @@ session_start();
             });
         }
 
-        // Cart functionality
+        // 2. Global Variables
         const messageBox = document.getElementById('order-message');
         const listEl = document.getElementById('cart-summary-list');
         const totalEl = document.getElementById('cart-summary-total');
         const confirmBtn = document.getElementById('confirm-order-btn');
-
         let cart = [];
 
-        function loadCartFromSession() {
+        // 3. Initialize Cart (Load from Session + Server)
+        async function initCart() {
+            // A. Load local data first
             try {
                 const stored = sessionStorage.getItem('cart');
-                cart = stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                console.error('Erreur lecture cart sessionStorage', e);
-                cart = [];
+                if (stored) cart = JSON.parse(stored);
+            } catch (e) { console.error(e); }
+
+            // B. Check if user is logged in (PHP injection)
+            const isLoggedIn = <?php echo !empty($_SESSION['auth']) ? 'true' : 'false'; ?>;
+
+            if (isLoggedIn) {
+                try {
+                    // Fetch saved cart from DB
+                    const res = await fetch('api.php?action=get_cart');
+                    const data = await res.json();
+                    
+                    if (data.cart && data.cart.length > 0) {
+                        // Merge logic: If local is empty, use server.
+                        // If user has local items, we keep them (or you could merge them).
+                        if (cart.length === 0) {
+                            cart = data.cart;
+                            sessionStorage.setItem('cart', JSON.stringify(cart));
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error fetching server cart:", err);
+                }
             }
+            
+            renderCartSummary();
         }
 
+        // 4. Save Cart
         function saveCartToSession() {
-            try {
-                sessionStorage.setItem('cart', JSON.stringify(cart));
-            } catch (e) {
-                console.error('Erreur écriture cart sessionStorage', e);
+            // Save Local
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            
+            // Save Server (if logged in)
+            const isLoggedIn = <?php echo !empty($_SESSION['auth']) ? 'true' : 'false'; ?>;
+            if(isLoggedIn) {
+                fetch('api.php?action=save_cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cart })
+                }).catch(e => console.error("Save error", e));
             }
-            fetch('api.php?action=save_cart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ cart })
-            }).catch(() => {});
         }
 
+        // 5. Render Cart HTML
         function renderCartSummary() {
             listEl.innerHTML = '';
-            listEl.className = 'cart-list-styled'; // Use CSS class instead of inline styles
+            listEl.className = 'cart-list-styled'; 
 
             let total = 0;
 
@@ -117,12 +151,14 @@ session_start();
             cart.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.className = 'cart-item-row';
-
-                const lineTotal = item.price * item.quantity;
+                
+                const price = parseFloat(item.price);
+                const qty = parseInt(item.quantity);
+                const lineTotal = price * qty;
                 total += lineTotal;
 
                 li.innerHTML = `
-                    <span class="item-name">${item.name} <small>x${item.quantity}</small></span>
+                    <span class="item-name">${item.name} <small>x${qty}</small></span>
                     <div class="item-actions">
                         <span class="item-price">${lineTotal.toFixed(2)} TND</span>
                         <div class="qty-controls">
@@ -131,7 +167,6 @@ session_start();
                         </div>
                     </div>
                 `;
-
                 listEl.appendChild(li);
             });
 
@@ -142,6 +177,7 @@ session_start();
             });
         }
 
+        // 6. Handle Quantity Buttons
         function onQtyButtonClick(e) {
             const index = parseInt(e.currentTarget.getAttribute('data-index'), 10);
             const op = e.currentTarget.getAttribute('data-op');
@@ -156,20 +192,25 @@ session_start();
                     cart.splice(index, 1);
                 }
             }
-
-            saveCartToSession();
+            
+            saveCartToSession(); 
             renderCartSummary();
         }
 
+        // 7. CONFIRM ORDER (This was missing!)
         async function confirmOrder() {
             if (cart.length === 0) {
                 alert('Votre panier est vide.');
                 return;
             }
 
-            if (!sessionStorage.getItem('auth')) {
+            // Check Login via PHP Session first
+            const isLoggedIn = <?php echo !empty($_SESSION['auth']) ? 'true' : 'false'; ?>;
+            
+            if (!isLoggedIn) {
+                // If not logged in, send them to login page
                 const backUrl = encodeURIComponent('cart');
-                window.location.href = `signup?redirect=${backUrl}`;
+                window.location.href = `login?redirect=${backUrl}`;
                 return;
             }
 
@@ -189,14 +230,13 @@ session_start();
                     data = JSON.parse(text);
                 } catch (e) {
                     console.error('Invalid JSON', text);
-                    alert('Erreur serveur.');
+                    alert('Erreur serveur: Réponse invalide.');
                     return;
                 }
 
                 if (res.status === 401) {
-                    alert('Veuillez vous connecter pour commander');
-                    const backUrl = encodeURIComponent('cart');
-                    window.location.href = `login?redirect=${backUrl}`;
+                    alert('Session expirée. Veuillez vous reconnecter.');
+                    window.location.href = 'login';
                     return;
                 }
 
@@ -205,10 +245,16 @@ session_start();
                     return;
                 }
 
+                // Success Logic
                 cart = [];
                 sessionStorage.removeItem('cart');
+                // Also clear server cart
+                fetch('api.php?action=save_cart', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ cart: [] })
+                });
 
-                // Success Message
                 messageBox.innerHTML = `
                     <div class="success-box">
                         <h3>Commande confirmée !</h3>
@@ -219,14 +265,15 @@ session_start();
                     </div>
                 `;
                 messageBox.style.display = 'block';
-                // Hide cart card after success
                 document.querySelector('.cart-summary-card').style.display = 'none';
                 
-                // Re-bind back button
                 setTimeout(() => {
-                    document.getElementById('back-to-shop-btn').addEventListener('click', () => {
-                        window.location.href = 'shop';
-                    });
+                    const backBtn = document.getElementById('back-to-shop-btn');
+                    if(backBtn) {
+                        backBtn.addEventListener('click', () => {
+                            window.location.href = 'shop';
+                        });
+                    }
                 }, 100);
 
             } catch (e) {
@@ -235,12 +282,15 @@ session_start();
             }
         }
 
+        // 8. Main Event Listener
         document.addEventListener('DOMContentLoaded', () => {
             initThemeToggle();
-            loadCartFromSession();
-            renderCartSummary();
-            confirmBtn.addEventListener('click', confirmOrder);
+            initCart();
+            if(confirmBtn) {
+                confirmBtn.addEventListener('click', confirmOrder);
+            }
         });
     </script>
 </body>
+
 </html>
