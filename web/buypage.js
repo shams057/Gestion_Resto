@@ -1,4 +1,4 @@
-// buypage.js - COMPLETE FIXED VERSION WITH DEBUGGING
+// buypage.js - BULLETPROOF CATEGORY FILTERING
 
 // ===================== DOM ELEMENTS =====================
 const productsContainer = document.getElementById('products-container');
@@ -27,22 +27,14 @@ async function loadProducts() {
   try {
     const res = await fetch('api.php');
     const data = await res.json();
-    console.log('PRODUCTS FROM API:', data);
-    
-    // DEBUG: Check first product structure
-    if (data[0]) {
-      console.log('FIRST PRODUCT KEYS:', Object.keys(data[0]));
-      console.log('FIRST PRODUCT CATEGORY:', data[0].category);
-    }
-    
+    console.log('✅ PRODUCTS LOADED:', data);
     foods = data;
     displayProducts(foods);
     
-    // Initialize filters AFTER products load
     initAllergyFilters();
     initFilters();
   } catch (e) {
-    console.error('API ERROR:', e);
+    console.error('❌ API ERROR:', e);
     productsContainer.innerHTML = '<p>Erreur chargement produits</p>';
   }
 }
@@ -92,9 +84,14 @@ function initFilters() {
   const categoryFilter = document.getElementById('category-filter');
   const allergyContainer = document.getElementById('allergy-filters');
 
-  // Populate categories with EXACT DB names + data
-  if (categoryFilter && foods.length > 0) {
-    populateCategories(categoryFilter);
+  // ✅ FIXED: Populate categories by ID with proper names
+  if (categoryFilter) {
+    categoryFilter.innerHTML = `
+      <option value="all">Toutes les catégories</option>
+      <option value="1">Entrées</option>
+      <option value="2">Plats principaux</option>
+      <option value="3">Desserts</option>
+    `;
   }
 
   if (searchInput) searchInput.addEventListener('input', applyFilters);
@@ -103,26 +100,10 @@ function initFilters() {
   if (allergyContainer) allergyContainer.addEventListener('change', applyFilters);
 }
 
-function populateCategories(selectElement) {
-  // EXACT categories from your SQL categories table
-  const dbCategories = ['Entrées', 'Plats principaux', 'Desserts'];
-  
-  selectElement.innerHTML = '<option value="all">Toutes les catégories</option>';
-  
-  dbCategories.forEach(category => {
-    const option = document.createElement('option');
-    option.value = category;
-    option.textContent = category;
-    selectElement.appendChild(option);
-  });
-}
-
 function applyFilters() {
   const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
   const sortValue = document.getElementById('sort-filter')?.value || 'none';
-  const categoryValue = document.getElementById('category-filter')?.value || 'all';
-
-  console.log('FILTER DEBUG - Category:', categoryValue); // DEBUG
+  const categoryId = document.getElementById('category-filter')?.value || 'all';
 
   const selectedAllergens = Array.from(
     document.querySelectorAll('#allergy-filters input:checked')
@@ -134,43 +115,15 @@ function applyFilters() {
       food.name?.toLowerCase().includes(searchTerm) || 
       food.desc?.toLowerCase().includes(searchTerm);
 
-    // FIXED Category filter - try multiple possible field names
-    let matchesCategory = categoryValue === 'all';
-    if (!matchesCategory) {
-      // Try category name first (from API JOIN c.nom AS category)
-      matchesCategory = food.category === categoryValue;
-      
-      // Fallback: try id_categorie numeric match (1=Entrées, 2=Plats principaux, 3=Desserts)
-      if (!matchesCategory && food.id_categorie) {
-        const catId = {
-          'Entrées': 1,
-          'Plats principaux': 2,
-          'Desserts': 3
-        }[categoryValue];
-        matchesCategory = parseInt(food.id_categorie) === catId;
-      }
-    }
+    // ✅ FIXED: Category filter by id_categorie (direct number match)
+    const matchesCategory = categoryId === 'all' || food.id_categorie == categoryId;
 
-    // Allergen filter - EXCLUDE selected allergens
+    // Allergen filter - exclude selected allergens
     const matchesAllergens = selectedAllergens.length === 0 || 
       !food.allergy?.some(a => selectedAllergens.includes(a));
 
-    const result = matchesSearch && matchesCategory && matchesAllergens;
-    
-    // DEBUG first few items
-    if (foods.indexOf(food) < 3) {
-      console.log('FILTER DEBUG:', food.name, {
-        search: matchesSearch,
-        category: matchesCategory,
-        allergens: matchesAllergens,
-        result
-      });
-    }
-    
-    return result;
+    return matchesSearch && matchesCategory && matchesAllergens;
   });
-
-  console.log('FILTERED RESULTS:', filtered.length, 'items'); // DEBUG
 
   // Apply sorting
   if (sortValue === 'price-asc') {
@@ -325,6 +278,14 @@ function displayProducts(items) {
   }
 
   items.forEach((food) => {
+    // ✅ Get category name from id_categorie
+    const categoryNames = {
+      1: 'Entrées',
+      2: 'Plats principaux', 
+      3: 'Desserts'
+    };
+    const categoryName = categoryNames[food.id_categorie] || '';
+
     const allergyTags = food.allergy && Array.isArray(food.allergy)
       ? food.allergy
           .map((a) => {
@@ -338,8 +299,7 @@ function displayProducts(items) {
           .join(' ')
       : '';
 
-    const categoryTag = (food.category || food.id_categorie) ? 
-      `<div class="category-tag">${food.category || `Cat ${food.id_categorie}`}</div>` : '';
+    const categoryTag = categoryName ? `<div class="category-tag">${categoryName}</div>` : '';
 
     const card = document.createElement('div');
     card.className = 'card';
@@ -387,6 +347,13 @@ function displayProducts(items) {
 
 // ===================== MODAL =====================
 function openProductModal(food) {
+  const categoryNames = {
+    1: 'Entrées',
+    2: 'Plats principaux', 
+    3: 'Desserts'
+  };
+  const categoryName = categoryNames[food.id_categorie] || '';
+
   const allergyTags = food.allergy && Array.isArray(food.allergy)
     ? food.allergy
         .map((a) => {
@@ -400,8 +367,7 @@ function openProductModal(food) {
         .join(' ')
     : '';
 
-  const categoryTag = (food.category || food.id_categorie) ? 
-    `<div class="category-tag">${food.category || `Cat ${food.id_categorie}`}</div>` : '';
+  const categoryTag = categoryName ? `<div class="category-tag">${categoryName}</div>` : '';
 
   modalBody.innerHTML = `
     <div class="card">

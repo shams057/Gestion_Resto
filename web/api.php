@@ -230,11 +230,9 @@ if ($action === 'create_order') {
             ]);
         }
 
-        // Clear DB cart
         $clear = $pdo->prepare('DELETE FROM carts WHERE id_client = :cid');
         $clear->execute([':cid' => $clientId]);
 
-        // Schedule review reminder
         try {
             $clientEmail = $_SESSION['auth']['email'] ?? null;
             if ($clientEmail) {
@@ -270,7 +268,7 @@ if ($action === 'create_order') {
     }
 }
 
-// SEND REVIEW REMINDERS (manual button or cron) - FIXED
+// SEND REVIEW REMINDERS
 if ($action === 'send_review_reminders') {
     $token = $_GET['token'] ?? '';
     if ($token !== 'simple123') {
@@ -313,10 +311,11 @@ if ($action === 'send_review_reminders') {
     exit;
 }
 
-// DEFAULT: list products
+// FIXED: DEFAULT PRODUCTS LIST - NOW RETURNS id_categorie AND category
 if ($action === null) {
     $stmt = $pdo->query("
-        SELECT p.id, p.nom, p.description, p.prix, c.nom AS category, 
+        SELECT p.id, p.nom, p.description, p.prix, p.id_categorie,
+               c.nom AS category, 
                COALESCE(p.image_url, 'no-image.png') AS image_url,
                COALESCE(p.allergies, '') AS allergies
         FROM plats p 
@@ -325,18 +324,20 @@ if ($action === null) {
     ");
     $rows = $stmt->fetchAll();
     
-    // Transform for frontend
+    // FIXED: Complete field mapping
     $products = array_map(function($row) {
         return [
-            'id' => $row['id'],
+            'id' => (int)$row['id'],
             'name' => $row['nom'],
             'desc' => $row['description'] ?? '',
             'price' => (float)$row['prix'],
+            'id_categorie' => (int)$row['id_categorie'],  // ← CRITICAL FIX
+            'category' => $row['category'] ?? '',         // ← CRITICAL FIX
             'img' => $row['image_url'],
-            'allergy' => $row['allergies'] ? explode(',', $row['allergies']) : []
+            'allergy' => $row['allergies'] ? explode(',', trim($row['allergies'])) : []
         ];
     }, $rows);
     
     json_response($products);
 }
-
+?>
