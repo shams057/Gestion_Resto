@@ -118,6 +118,14 @@ html.dark-mode .navbar {
   font-size: 18px;
   transition: all 0.2s ease;
 }
+.theme-toggle::before {
+  content: "🌙";
+  transition: opacity 0.2s ease;
+}
+
+html.dark-mode .theme-toggle::before {
+  content: "☀️";
+}
 
 .theme-toggle:hover {
   background: var(--neutral-light);

@@ -3,14 +3,12 @@ session_start();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <title>Panier - FoodMarket</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styleBP.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 </head>
 
 <body>
@@ -19,7 +17,8 @@ session_start();
             <div class="logo">FoodMarket</div>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
-            <button id="theme-toggle" class="theme-toggle">🌙</button>
+            <!-- Fixed: Empty button - CSS handles emoji via ::before -->
+            <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode"></button>
             <div style="display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
                 <?php if (!empty($_SESSION['auth'])): ?>
                     <span style="font-weight: 500;"><?php echo htmlspecialchars($_SESSION['auth']['nom']); ?></span>
@@ -30,12 +29,10 @@ session_start();
                         style="color: var(--text-primary); text-decoration: none; font-weight: 500;">Connexion</a>
                 <?php endif; ?>
                 <a href="shop"
-                    style="color: var(--text-primary); text-decoration: none; padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 6px;">Retour
-                    boutique</a>
+                    style="color: var(--text-primary); text-decoration: none; padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 6px;">Retour boutique</a>
             </div>
         </div>
     </nav>
-
 
     <div class="container" style="padding:20px; flex-direction:column;">
         <h2>Confirmation de commande</h2>
@@ -55,25 +52,30 @@ session_start();
         </div>
         <div id="order-message" style="display:none; margin-top:20px;"></div>
     </div>
-    </div>
 
     <script>
+        // FIXED: Clean theme toggle - NO textContent (prevents double emojis)
         function initThemeToggle() {
             const themeToggle = document.getElementById("theme-toggle");
+            if (!themeToggle) return;
+            
             const html = document.documentElement;
             const savedTheme = localStorage.getItem("theme") || "light";
+            
+            // Apply saved theme
             if (savedTheme === "dark") {
                 html.classList.add("dark-mode");
-                themeToggle.textContent = "☀️";
             }
+            
+            // Toggle on click - CSS handles icons
             themeToggle.addEventListener("click", () => {
-                html.classList.toggle("dark-mode");
-                const isDark = html.classList.contains("dark-mode");
+                const isDark = html.classList.toggle("dark-mode");
                 localStorage.setItem("theme", isDark ? "dark" : "light");
-                themeToggle.textContent = isDark ? "☀️" : "🌙";
+                // NO textContent = no double emojis!
             });
         }
 
+        // Cart functionality
         const messageBox = document.getElementById('order-message');
         const listEl = document.getElementById('cart-summary-list');
         const totalEl = document.getElementById('cart-summary-total');
@@ -98,13 +100,13 @@ session_start();
                 console.error('Erreur écriture cart sessionStorage', e);
             }
 
-            // NEW: sync DB cart as well
+            // Sync DB cart as well
             fetch('api.php?action=save_cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({ cart })
-            }).catch(() => { });
+            }).catch(() => {});
         }
 
         function renderCartSummary() {
@@ -125,12 +127,12 @@ session_start();
                 total += lineTotal;
 
                 li.innerHTML = `
-            <span>${item.name} x${item.quantity} - ${lineTotal.toFixed(2)} TND</span>
-            <span>
-                <button type="button" class="qty-btn" data-index="${index}" data-op="dec">-</button>
-                <button type="button" class="qty-btn" data-index="${index}" data-op="inc">+</button>
-            </span>
-        `;
+                    <span>${item.name} x${item.quantity} - ${lineTotal.toFixed(2)} TND</span>
+                    <span>
+                        <button type="button" class="qty-btn" data-index="${index}" data-op="dec">-</button>
+                        <button type="button" class="qty-btn" data-index="${index}" data-op="inc">+</button>
+                    </span>
+                `;
 
                 listEl.appendChild(li);
             });
@@ -167,7 +169,6 @@ session_start();
                 return;
             }
 
-            // Front check: if not logged in on front, go to signup
             if (!sessionStorage.getItem('auth')) {
                 const backUrl = encodeURIComponent('cart');
                 window.location.href = `signup?redirect=${backUrl}`;
@@ -177,7 +178,7 @@ session_start();
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
             try {
-                const res = await fetch('api?action=create_order', {
+                const res = await fetch('api.php?action=create_order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -201,35 +202,33 @@ session_start();
                     return;
                 }
 
-
                 if (!res.ok || !data || data.success === false) {
                     alert((data && data.error) || 'Erreur lors de la création de la commande.');
                     return;
                 }
+
                 cart = [];
                 sessionStorage.removeItem('cart');
 
                 messageBox.innerHTML = `
-  <div style="
-    background:#e8f5e9;
-    border:1px solid #2ecc71;
-    padding:16px;
-    border-radius:8px;
-    max-width:600px;
-  ">
-    <h3 style="margin-top:0;">Commande confirmée !</h3>
-    <p>Référence: <strong>${data.reference}</strong></p>
-    <button id="back-to-shop-btn" style="margin-top:10px;">
-      Retourner à la boutique
-    </button>
-  </div>
-`;
+                    <div style="
+                        background:#e8f5e9;
+                        border:1px solid #2ecc71;
+                        padding:16px;
+                        border-radius:8px;
+                        max-width:600px;
+                    ">
+                        <h3 style="margin-top:0;">Commande confirmée !</h3>
+                        <p>Référence: <strong>${data.reference}</strong></p>
+                        <button id="back-to-shop-btn" style="margin-top:10px;">
+                            Retourner à la boutique
+                        </button>
+                    </div>
+                `;
                 messageBox.style.display = 'block';
 
-                // keep the summary visually empty
                 renderCartSummary();
 
-                // attach click handler
                 const backBtn = document.getElementById('back-to-shop-btn');
                 if (backBtn) {
                     backBtn.addEventListener('click', () => {
@@ -242,14 +241,13 @@ session_start();
             }
         }
 
+        // Initialize everything
         document.addEventListener('DOMContentLoaded', () => {
-            initThemeToggle(); // Add this line
+            initThemeToggle();
             loadCartFromSession();
             renderCartSummary();
             confirmBtn.addEventListener('click', confirmOrder);
         });
-
     </script>
 </body>
-
 </html>
