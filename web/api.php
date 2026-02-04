@@ -433,4 +433,43 @@ if ($action === null) {
     
     json_response($products);
 }
+
+// --- GET ALL ORDERS (FOR CHEF) ---
+if ($action === 'get_chef_orders') {
+    // Only allow logged-in users with roles 'admin' or 'cuisinier'
+    if (empty($_SESSION['auth']) || !in_array($_SESSION['auth']['role'], ['admin', 'cuisinier'])) {
+        json_response(['error' => 'Unauthorized'], 401);
+    }
+
+    $stmt = $pdo->query("
+        SELECT c.id, c.reference, c.statut, c.created_at, cl.nom as client_name,
+        GROUP_CONCAT(CONCAT(lc.quantite, 'x ', p.nom) SEPARATOR ', ') as details
+        FROM commandes c
+        LEFT JOIN clients cl ON c.id_client = cl.id
+        JOIN ligne_commandes lc ON c.id = lc.id_commande
+        JOIN plats p ON lc.id_plat = p.id
+        WHERE c.statut NOT IN ('livree', 'annulee')
+        GROUP BY c.id
+        ORDER BY c.created_at ASC
+    ");
+    json_response($stmt->fetchAll());
+}
+
+// --- UPDATE ORDER STATUS ---
+if ($action === 'update_order_status') {
+    if (empty($_SESSION['auth']) || !in_array($_SESSION['auth']['role'], ['admin', 'cuisinier'])) {
+        json_response(['error' => 'Unauthorized'], 401);
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $orderId = $data['order_id'] ?? null;
+    $newStatus = $data['statut'] ?? null;
+
+    if ($orderId && $newStatus) {
+        $stmt = $pdo->prepare("UPDATE commandes SET statut = ? WHERE id = ?");
+        $stmt->execute([$newStatus, $orderId]);
+        json_response(['success' => true]);
+    }
+    json_response(['success' => false], 400);
+}
 ?>

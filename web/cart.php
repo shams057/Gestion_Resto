@@ -32,7 +32,7 @@ session_start();
                     <a href="login"
                         style="color: var(--text-primary); text-decoration: none; font-weight: 500;">Connexion</a>
                 <?php endif; ?>
-                <a href="shop" class="btn-shop">Retour boutique</a>
+                <a href="shop" class="btn-shop">Retour menu</a>
             </div>
         </div>
     </nav>

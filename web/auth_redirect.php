@@ -9,12 +9,7 @@ $configs = [
         'scope'     => 'email profile',
         'redirect'  => 'http://gresto.com/web/callback?provider=google'
     ],
-    'facebook' => [
-        'client_id' => 'YOUR_FB_APP_ID',
-        'auth_url'  => 'https://www.facebook.com/v12.0/dialog/oauth',
-        'scope'     => 'email',
-        'redirect'  => 'http://localhost/web/callback?provider=facebook'
-    ]
+
 ];
 
 $provider = $_GET['provider'] ?? '';

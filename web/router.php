@@ -24,7 +24,9 @@ switch ($path) {
     case '/cam':
         require __DIR__ . '/cam.php';
         break;
-
+    case '/chef':
+        require __DIR__ . '/chef.php';
+        break;
     case '/login':
         require __DIR__ . '/login.php';
         break;
