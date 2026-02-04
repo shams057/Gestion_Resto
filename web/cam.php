@@ -1,20 +1,29 @@
-<script>
-    if (!sessionStorage.getItem('auth') && !document.cookie.includes('PHPSESSID')) {
-    }
-</script>
+<?php
+// --- SECURITY BLOCK START ---
+session_start();
+
+// 1. Check if user is logged in
+// If 'auth' is empty in session, redirect to login page
+if (empty($_SESSION['auth'])) {
+    header("Location: login"); 
+    exit;
+}
+
+// 2. Check if user is an ADMIN
+// If the role is NOT admin, kick them out to the shop page
+if (($_SESSION['auth']['role'] ?? '') !== 'admin') {
+    header("Location: shop");
+    exit;
+}
+// --- SECURITY BLOCK END ---
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cam Live</title>
-    <link rel="icon" type="image/png" href="img/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="img/favicon.png/favicon.svg" />
-    <link rel="shortcut icon" href="img/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="Gresto" />
-    <link rel="manifest" href="img/site.webmanifest" />
+    <title>Surveillance IA - Admin Restricted</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -175,5 +184,4 @@
     </script>
 
 </body>
-
 </html>

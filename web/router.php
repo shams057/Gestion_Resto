@@ -21,6 +21,9 @@ switch ($path) {
     case '/shop':
         require __DIR__ . '/buypage.html';
         break;
+    case '/cam':
+        require __DIR__ . '/cam.php';
+        break;
 
     case '/login':
         require __DIR__ . '/login.php';
