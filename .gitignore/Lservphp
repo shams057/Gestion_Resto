@@ -1,6 +1,31 @@
+#!/bin/bash
+
+# 1. Start XAMPP (Database + Apache)
 sudo /opt/lampp/lampp start
-sudo systemctl stop apache2
+
+# 2. Stop System Apache (Conflict)
+sudo systemctl stop apache2 2>/dev/null
+
+# 3. Restart XAMPP (Stability)
 sudo /opt/lampp/lampp restart
+
+# 4. Stop XAMPP Apache (Free up Port 80 for your site)
+sudo /opt/lampp/lampp stopapache
+
+echo "------------------------------------------------"
 IP=$(hostname -I | awk '{print $1}')
-qrcode "http://$IP:8000"
-php -S "$IP:8000" -t web web/router.php
+
+# 5. Start phpMyAdmin in the BACKGROUND on Port 8080
+# We use nohup so it keeps running even if script exits
+echo "Starting phpMyAdmin on Port 8080..."
+sudo nohup /opt/lampp/bin/php -S 0.0.0.0:8080 -t /opt/lampp/phpmyadmin >/dev/null 2>&1 &
+
+echo "------------------------------------------------"
+echo "Website:       http://gresto.com"
+echo "phpMyAdmin:    http://gresto.com:8080"
+echo "Wi-Fi Access:  http://$IP"
+qrcode "http://$IP:80"
+echo "------------------------------------------------"
+
+# 6. Start YOUR Website on Port 80
+sudo php -S 0.0.0.0:80 -t web web/router.php

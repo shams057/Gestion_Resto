@@ -18,31 +18,42 @@ waiter panel to change order status
 +mobile version
 
 Dashboard:
-vue gen(an/sem/j)
++vue gen(an/sem/j)
 
 
-- relocate review to email after 1h
-- colored allergens
-- save cart when no user
-- session disconnect after 2h
++ relocate review to email after 1h
++ colored allergens
++ save cart when no user
++ session disconnect after 2h
 - low stars alerts
-- login via google/facebook etc...
-% for text in cart 
-% margin top cart view
-fix navbar dashboard
-fix navbar mobile bp
++ login via google/facebook etc...
++% for text in cart 
++% margin top cart view
++fix navbar dashboard
++fix navbar mobile bp
 page for chef with list of orders
-other categories (healthy, etc...)
-keep local change address for easier link
++other categories (healthy, etc...)
++keep local change address for easier link
 
 
 aft commit:
-dark mode float button !nav
-fix dark confirm text cart
-alrg filter + zero sugar + keto
-add categories
-css vider 
-css return boutique
-check cart save
-css jmy dashboard + wide avis
-fix fetch dashboard
++ dark mode float button !nav
++fix dark confirm text cart
++add categories
++ css vider 
++css return boutique
++check cart save
++ css jmy dashboard + wide avis
++ fix fetch dashboard
++ update readme.md for python
+button call waiter
+fix new css:
+	+bottom card fix buy
+	+name in cart
+	+ emoji dark mode
+	burger menu mobile
+	+fix cart card
+	+disconnect color
+	+float switch cart
+	+google login 
+	- fb button login
